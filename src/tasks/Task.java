@@ -1,0 +1,54 @@
+package tasks;
+
+public class Task {
+    protected int id;
+    protected String name;
+    protected String description;
+    protected Status status;
+    protected TaskTypes taskType;
+
+    public Task(String name, String description, Status status) {
+        this.name = name;
+        this.description = description;
+        this.status = status;
+        taskType = TaskTypes.TASK;
+    }
+
+    @Override
+    public int hashCode() {
+        return id;
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (this == obj) return true;
+        if (obj == null || getClass() != obj.getClass()) return false;
+        Task task = (Task) obj;
+        return this.id == task.id;
+    }
+
+    public void setId(int id) {
+        this.id = id;
+    }
+
+    public int getId() {
+        return id;
+    }
+
+    public void setStatus (Status status) {
+        this.status = status;
+    }
+
+    public Status getStatus() {
+        return status;
+    }
+
+    public TaskTypes getTaskType() {
+        return taskType;
+    }
+
+    @Override
+    public String toString() {
+        return "tasks.Task{id='" + id + ", 'name='" + name + "', description='" + description + "', status=" + status + "'}";
+    }
+}
