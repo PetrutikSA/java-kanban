@@ -3,26 +3,26 @@ package tasks;
 import java.util.ArrayList;
 
 public class Epic extends Task{
-     private ArrayList<Subtask> subTasks;
+     private ArrayList<Integer> subTasksId;
      public Epic(String name, String description) {
         super(name, description, Status.NEW);
-        subTasks = new ArrayList<>();
+        subTasksId = new ArrayList<>();
         taskType = TaskTypes.EPIC;
     }
 
-    public void addSubTasks(Subtask subTask) {
-        if (!subTasks.contains(subTask)) {
-            subTasks.add(subTask);
+    public void addSubTasks(int subTaskId) {
+        if (!subTasksId.contains(subTaskId)) {
+            subTasksId.add(subTaskId);
         }
     }
 
-    public ArrayList<Subtask> getSubTasks() {
-        return subTasks;
+    public ArrayList<Integer> getSubTasksId() {
+        return subTasksId;
     }
 
     @Override
     public String toString() {
-        return "tasks.Epic{id='" + id + ", 'name='" + name + "', description='" + description + "', status=" + status
-                + ", subtasksNumber='" + subTasks.size() + "'}";
+        return "Epic{id='" + id + ", 'name='" + name + "', description='" + description + "', status=" + status
+                + ", subtasksNumber='" + subTasksId.size() + "'}";
     }
 }
