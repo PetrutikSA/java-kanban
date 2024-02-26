@@ -7,7 +7,6 @@ import tasks.TaskTypes;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.Objects;
 
 public class TaskManager {
     private final HashMap<Integer, Task> taskPool = new HashMap<>();
@@ -103,54 +102,18 @@ public class TaskManager {
                         taskPool.put(taskId, task);
                         break;
                     case EPIC:
-                        updateEpic(taskId, (Epic) task, (Epic) oldTask);
+                        epicPool.put(taskId, (Epic) task);
                         break;
                     case SUBTASK:
-                        updateSubtask(taskId, (Subtask) task, (Subtask) oldTask);
+                        Subtask subtask = (Subtask) task;
+                        subtaskPool.put(taskId, subtask);
+                        int connectedEpicId = subtask.getEpicId();
+                        epicStatusControl(epicPool.get(connectedEpicId));
                         break;
                 }
             }
         }
     }
-
-    public void updateEpic(int taskId, Epic newEpic, Epic oldEpic) {
-        //Проверка и отвязывание подзадач, которые отсутствуют в новой вариации эпика;
-        ArrayList<Integer> subtasksToDisconnection = new ArrayList<>(oldEpic.getSubTasksId());
-        for (Integer subtaskId : oldEpic.getSubTasksId()) {
-            if (newEpic.getSubTasksId().contains(subtaskId)) {
-                subtasksToDisconnection.remove(subtaskId);
-            }
-        }
-        for (Integer subtaskId : subtasksToDisconnection) {
-            subtaskPool.get(subtaskId).setEpicId(null);
-        }
-        epicStatusControl(newEpic);
-        epicPool.put(taskId, newEpic);
-    }
-
-    public void updateSubtask(int taskId, Subtask newSubtask, Subtask oldSubtask) {
-        subtaskPool.put(taskId, newSubtask);
-        Integer epicNewId = newSubtask.getEpicId();
-        Integer epicOldId = oldSubtask.getEpicId();
-        // проверка подвязывает/отвязывает ли пользователь подзадачу к эпику/-ам
-        if (!Objects.equals(epicOldId, epicNewId)) {
-            if (epicOldId != null) {
-                Epic epicOld = epicPool.get(epicOldId);
-                epicOld.getSubTasksId().remove((Integer)taskId);
-                epicStatusControl(epicOld);
-            }
-            //
-            if (epicOldId != null) {
-                Epic epicNew = epicPool.get(epicNewId);
-                epicNew.addSubTasks(taskId);
-                epicStatusControl(epicNew);
-            }
-        } else {
-            Epic epic = epicPool.get(epicNewId);
-            epicStatusControl(epic);
-        }
-    }
-
 
     public void removeTask(int id) {
         Task task = getTask(id);

@@ -27,7 +27,7 @@ public class Main {
 
         printAll(taskManager);
 
-        Subtask taskUpdate1 = new Subtask("Subtask3", "Changed connected epic", Status.IN_PROGRESS, 3);
+        Subtask taskUpdate1 = new Subtask("Subtask3", "Changed status", Status.IN_PROGRESS, 4);
         taskUpdate1.setId(7);
         taskManager.updateTask(taskUpdate1);
         task1.setStatus(Status.DONE);
@@ -38,6 +38,7 @@ public class Main {
         taskUpdate2.addSubTasks(taskUpdate1.getId());
         taskUpdate2.setId(3);
         taskUpdate1.setStatus(Status.DONE);
+        taskManager.updateTask(taskUpdate1);
         taskManager.updateTask(taskUpdate2);
         taskManager.removeTask(2);
         printAll(taskManager);
