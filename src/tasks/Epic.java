@@ -11,7 +11,7 @@ public class Epic extends Task{
     }
 
     public void addSubTasks(int subTaskId) {
-        if (!subTasksId.contains(subTaskId)) {
+        if (!subTasksId.contains(subTaskId) && (subTaskId != id)) {
             subTasksId.add(subTaskId);
         }
     }
