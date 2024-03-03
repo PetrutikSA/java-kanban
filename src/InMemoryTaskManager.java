@@ -157,7 +157,7 @@ public class InMemoryTaskManager implements TaskManager {
                     // Удаляется подзадача из пулла, из эпика, проверяется статус эпика
                     Subtask subtask = subtaskPool.remove(id);
                     Epic connectedEpic = epicPool.get(subtask.getEpicId());
-                    connectedEpic.getSubTasksId().remove(id);
+                    connectedEpic.getSubTasksId().remove((Integer) id);
                     epicStatusControl(connectedEpic);
                     break;
             }
