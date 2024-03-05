@@ -1,5 +1,8 @@
 package tasks;
 
+import tasks.enums.Status;
+import tasks.enums.TaskTypes;
+
 public class Task {
     protected int id;
     protected String name;

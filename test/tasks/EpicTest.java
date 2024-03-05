@@ -18,7 +18,7 @@ class EpicTest {
     void addSubTasks() {
         epic1.addSubTasks(2);
         epic1.addSubTasks(1);
-        assertEquals(1, epic1.getSubTasksId().size(), "Эпик добавил самого себя в свои подзадачи");
+        assertEquals(1, epic1.getSubTasksIds().size(), "Эпик добавил самого себя в свои подзадачи");
     }
 
     @BeforeEach

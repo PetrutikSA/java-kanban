@@ -2,6 +2,8 @@ package tasks;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import tasks.enums.Status;
+
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 class SubtaskTest {

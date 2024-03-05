@@ -1,28 +1,32 @@
 package tasks;
 
+import tasks.enums.Status;
+import tasks.enums.TaskTypes;
+
 import java.util.ArrayList;
+import java.util.List;
 
 public class Epic extends Task{
-     private ArrayList<Integer> subTasksId;
+     private List<Integer> subTasksIds;
      public Epic(String name, String description) {
         super(name, description, Status.NEW);
-        subTasksId = new ArrayList<>();
+        subTasksIds = new ArrayList<>();
         taskType = TaskTypes.EPIC;
     }
 
     public void addSubTasks(int subTaskId) {
-        if (!subTasksId.contains(subTaskId) && (subTaskId != id)) {
-            subTasksId.add(subTaskId);
+        if (!subTasksIds.contains(subTaskId) && (subTaskId != id)) {
+            subTasksIds.add(subTaskId);
         }
     }
 
-    public ArrayList<Integer> getSubTasksId() {
-        return subTasksId;
+    public List<Integer> getSubTasksIds() {
+        return subTasksIds;
     }
 
     @Override
     public String toString() {
         return "Epic{id='" + id + ", 'name='" + name + "', description='" + description + "', status=" + status
-                + ", subtasksNumber='" + subTasksId.size() + "'}";
+                + ", subtasksNumber='" + subTasksIds.size() + "'}";
     }
 }

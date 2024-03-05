@@ -1,22 +1,23 @@
 import tasks.Epic;
-import tasks.Status;
+import tasks.enums.Status;
 import tasks.Subtask;
 import tasks.Task;
-import tasks.TaskTypes;
+import tasks.enums.TaskTypes;
 
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 public class InMemoryTaskManager implements TaskManager {
-    private final HashMap<Integer, Task> taskPool = new HashMap<>();
-    private final HashMap<Integer, Subtask> subtaskPool = new HashMap<>();
-    private final HashMap<Integer, Epic> epicPool = new HashMap<>();
+    private final Map<Integer, Task> taskPool = new HashMap<>();
+    private final Map<Integer, Subtask> subtaskPool = new HashMap<>();
+    private final Map<Integer, Epic> epicPool = new HashMap<>();
     private int lastTaskId = 0;
     private final HistoryManager historyManager = Managers.getDefaultHistory();
 
     @Override
-    public ArrayList<Task> getTasksList() {
+    public List<Task> getTasksList() {
         ArrayList<Task> tasksList = new ArrayList<>();
         for (Map.Entry<Integer, Task> pair : taskPool.entrySet()) {
             tasksList.add(pair.getValue());
@@ -25,7 +26,7 @@ public class InMemoryTaskManager implements TaskManager {
     }
 
     @Override
-    public ArrayList<Epic> getEpicsList() {
+    public List<Epic> getEpicsList() {
         ArrayList<Epic> epicsList = new ArrayList<>();
         for (Map.Entry<Integer, Epic> pair : epicPool.entrySet()) {
             epicsList.add(pair.getValue());
@@ -34,7 +35,7 @@ public class InMemoryTaskManager implements TaskManager {
     }
 
     @Override
-    public ArrayList<Subtask> getSubtasksList() {
+    public List<Subtask> getSubtasksList() {
         ArrayList<Subtask> subtasksList = new ArrayList<>();
         for (Map.Entry<Integer, Subtask> pair : subtaskPool.entrySet()) {
             subtasksList.add(pair.getValue());
@@ -59,7 +60,7 @@ public class InMemoryTaskManager implements TaskManager {
         //Пересмотр статуса эпиков согласно логике программы
         for (Integer id : epicPool.keySet()) {
             Epic epic = epicPool.get(id);
-            epic.getSubTasksId().clear();
+            epic.getSubTasksIds().clear();
             epicStatusControl(epic);
         }
     }
@@ -149,7 +150,7 @@ public class InMemoryTaskManager implements TaskManager {
                 case EPIC:
                     // Удаляются эпик из пулла, удаляются все связанные подзадачи
                     Epic epic = epicPool.remove(id);
-                    for (Integer subtaskId : epic.getSubTasksId()) {
+                    for (Integer subtaskId : epic.getSubTasksIds()) {
                         subtaskPool.remove(subtaskId);
                     }
                     break;
@@ -157,7 +158,7 @@ public class InMemoryTaskManager implements TaskManager {
                     // Удаляется подзадача из пулла, из эпика, проверяется статус эпика
                     Subtask subtask = subtaskPool.remove(id);
                     Epic connectedEpic = epicPool.get(subtask.getEpicId());
-                    connectedEpic.getSubTasksId().remove((Integer) id);
+                    connectedEpic.getSubTasksIds().remove((Integer) id);
                     epicStatusControl(connectedEpic);
                     break;
             }
@@ -165,11 +166,11 @@ public class InMemoryTaskManager implements TaskManager {
     }
 
     @Override
-    public ArrayList<Subtask> getEpicSubtasksList(int id) {
+    public List<Subtask> getEpicSubtasksList(int id) {
         ArrayList<Subtask> subtasks = new ArrayList<>();
         if (epicPool.containsKey(id)) {
             Epic epic = epicPool.get(id);
-            for (Integer subtaskId : epic.getSubTasksId()) {
+            for (Integer subtaskId : epic.getSubTasksIds()) {
                 Subtask subtask = subtaskPool.get(subtaskId);
                 subtasks.add(subtask);
             }
@@ -178,13 +179,13 @@ public class InMemoryTaskManager implements TaskManager {
     }
 
     @Override
-    public ArrayList<Task> getHistory() {
+    public List<Task> getHistory() {
         return historyManager.getHistory();
     }
 
     private void epicStatusControl(Epic epic) {
         if (epic != null) {
-            ArrayList<Integer> subTasksId = epic.getSubTasksId();
+            List<Integer> subTasksId = epic.getSubTasksIds();
             boolean isSubtasksCompleate = true;
             boolean isAllSubtasksNew = true;
             for (Integer subtaskId : subTasksId) {

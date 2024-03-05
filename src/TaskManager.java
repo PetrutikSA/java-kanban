@@ -2,14 +2,14 @@ import tasks.Epic;
 import tasks.Subtask;
 import tasks.Task;
 
-import java.util.ArrayList;
+import java.util.List;
 
 public interface TaskManager {
-    ArrayList<Task> getTasksList();
+    List<Task> getTasksList();
 
-    ArrayList<Epic> getEpicsList();
+    List<Epic> getEpicsList();
 
-    ArrayList<Subtask> getSubtasksList();
+    List<Subtask> getSubtasksList();
 
     void removeTaskPool();
 
@@ -25,7 +25,7 @@ public interface TaskManager {
 
     void removeTask(int id);
 
-    ArrayList<Subtask> getEpicSubtasksList(int id);
+    List<Subtask> getEpicSubtasksList(int id);
 
-    ArrayList<Task> getHistory();
+    List<Task> getHistory();
 }

@@ -1,6 +1,6 @@
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import tasks.Status;
+import tasks.enums.Status;
 import tasks.Task;
 
 import java.util.List;

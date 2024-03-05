@@ -2,7 +2,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import tasks.Epic;
-import tasks.Status;
+import tasks.enums.Status;
 import tasks.Subtask;
 import tasks.Task;
 
@@ -74,7 +74,7 @@ class InMemoryTaskManagerTest {
         List<Epic> epics = taskManager.getEpicsList();
         assertFalse(epics.isEmpty(), "Пулл эпиков так же очищен");
         for (Epic epic : epics) {
-            assertTrue(epic.getSubTasksId().isEmpty(), "Подзадачи в эпиках не очищены");
+            assertTrue(epic.getSubTasksIds().isEmpty(), "Подзадачи в эпиках не очищены");
             assertEquals(Status.NEW, epic.getStatus(), "Статус не указан как Новый");
         }
     }
@@ -108,7 +108,7 @@ class InMemoryTaskManagerTest {
         assertNotNull(taskManager.getTask(8), "Удалена некорректная подзадача");
         assertNotNull(taskManager.getTask(9), "Удалена некорректная подзадача");
         Epic epic = (Epic) taskManager.getTask(4);
-        assertEquals(2, epic.getSubTasksId().size(), "Не отредактирован перечень подзадач у  эпика");
+        assertEquals(2, epic.getSubTasksIds().size(), "Не отредактирован перечень подзадач у  эпика");
     }
 
     @Test
