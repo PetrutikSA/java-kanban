@@ -1,5 +1,7 @@
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import tasks.Epic;
+import tasks.Subtask;
 import tasks.enums.Status;
 import tasks.Task;
 
@@ -38,19 +40,26 @@ class InMemoryHistoryManagerTest {
 
     @Test
     void correctSizeHistoryControl() {
-        for (int i = 1; i < 13; i++) {
+        for (int i = 1; i <= 13; i++) {
             Task newTask = new Task("Name" + i, "Description" + i, Status.NEW);
-            newTask.setId((i + 1));
+            newTask.setId((i));
             historyManager.addTaskToHistory(newTask);
         }
+
+        for (int i = 1; i < 6; i++) {
+            Task newTask = new Task("Name" + i, "Description" + i, Status.NEW);
+            newTask.setId((i));
+            historyManager.addTaskToHistory(newTask);
+        }
+
         List<Task> history = historyManager.getHistory();
-        assertEquals(10, history.size(), "Некорректный размер истории");
-        assertEquals("Task{id='4, 'name='Name3', description='Description3', status=NEW'}",
+        assertEquals(13, history.size(), "Некорректный размер истории");
+        assertEquals("Task{id='6, 'name='Name6', description='Description6', status=NEW'}",
                 history.get(0).toString(), "Некорректный порядок задач в истории");
-        assertEquals("Task{id='9, 'name='Name8', description='Description8', status=NEW'}",
+        assertEquals("Task{id='11, 'name='Name11', description='Description11', status=NEW'}",
                 history.get(5).toString(), "Некорректный порядок задач в истории");
-        assertEquals("Task{id='13, 'name='Name12', description='Description12', status=NEW'}",
-                history.get(9).toString(), "Некорректный порядок задач в истории");
+        assertEquals("Task{id='1, 'name='Name1', description='Description1', status=NEW'}",
+                history.get(8).toString(), "Некорректный порядок задач в истории");
     }
 
     @Test
@@ -63,9 +72,30 @@ class InMemoryHistoryManagerTest {
         taskManager.updateTask(updateTask);
         taskManager.getTask(1);
         List<Task> tasks = taskManager.getHistory();
-        assertEquals("Task{id='1, 'name='Name', description='Description', status=NEW'}",
-                tasks.get(0).toString(), "Первая версия задачи не корректно сохранена");
+        assertEquals(1, tasks.size(), "Некорректный размер истории");
         assertEquals("Task{id='1, 'name='Name', description='Task done', status=DONE'}",
-                tasks.get(1).toString(), "Вторая версия задачи не корректно сохранена");
+                tasks.get(0).toString(), "Вторая версия задачи не корректно сохранена");
+    }
+
+    @Test
+    void historyManagerClearWhenRemoveEpicPool() {
+        TaskManager taskManager = Managers.getDefault();
+        Epic epic1 = new Epic("Epic1", "First epic to complete");
+        Epic epic2 = new Epic("Epic2", "Second epic to complete");
+        Subtask subtask1 = new Subtask("Subtask1", "First Subtask to first epic", Status.NEW, 1);
+        Subtask subtask2 = new Subtask("Subtask2", "Second Subtask to first epic", Status.NEW, 2);
+        taskManager.createTask(epic1);
+        taskManager.createTask(epic2);
+        taskManager.createTask(subtask1);
+        taskManager.createTask(subtask2);
+        taskManager.getTask(1);
+        taskManager.getTask(2);
+        taskManager.getTask(3);
+        taskManager.getTask(4);
+        List<Task> history = taskManager.getHistory();
+        assertEquals(4, history.size(), "Некорректный размер истории");
+        taskManager.removeEpicPool();
+        history = taskManager.getHistory();
+        assertEquals(0, history.size(), "Некорректный размер истории");
     }
 }
