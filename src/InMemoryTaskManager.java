@@ -45,23 +45,35 @@ public class InMemoryTaskManager implements TaskManager {
 
     @Override
     public void removeTaskPool() {
+        clearHistoryWhenRemovingPool(taskPool);
         taskPool.clear();
     }
 
     @Override
     public void removeEpicPool() {
+        clearHistoryWhenRemovingPool(epicPool);
+        clearHistoryWhenRemovingPool(subtaskPool);
         epicPool.clear();
         subtaskPool.clear();
     }
 
     @Override
     public void removeSubtaskPool() {
+        clearHistoryWhenRemovingPool(subtaskPool);
         subtaskPool.clear();
         //Пересмотр статуса эпиков согласно логике программы
         for (Integer id : epicPool.keySet()) {
             Epic epic = epicPool.get(id);
             epic.getSubTasksIds().clear();
             epicStatusControl(epic);
+        }
+    }
+
+    private void clearHistoryWhenRemovingPool (Map<Integer, ? extends Task> pool) {
+        if (!pool.isEmpty()) {
+            for (int id : pool.keySet()) {
+                historyManager.remove(id);
+            }
         }
     }
 
@@ -142,6 +154,7 @@ public class InMemoryTaskManager implements TaskManager {
     public void removeTask(int id) {
         Task task = getTask(id, false);
         if (task != null) {
+            historyManager.remove(id);
             TaskTypes taskType = task.getTaskType();
             switch (taskType) {
                 case TASK:

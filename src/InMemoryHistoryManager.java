@@ -1,24 +1,65 @@
 import tasks.Task;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 public class InMemoryHistoryManager implements HistoryManager {
-    private static final int HISTORY_SIZE_LIMIT = 10;
-    private final List<Task> tasksHistory = new ArrayList<>(HISTORY_SIZE_LIMIT);
+    private final Map<Integer, HistoryNode> historyLinkedMap = new HashMap<>();
+    private HistoryNode head; //самая старая запись
+    private HistoryNode tail; //самая новая запись
 
     @Override
     public void addTaskToHistory(Task task) {
-        if (task != null) {
-            if (tasksHistory.size() == HISTORY_SIZE_LIMIT) {
-                tasksHistory.remove(0);
+        int taskId = task.getId();
+        HistoryNode node = new HistoryNode(task);
+        remove(taskId);
+        if (head == null) { //Если голова нулл то и хвост нулл
+            head = node;
+            tail = node;
+        } else {
+            HistoryNode oldTail = tail;
+            tail = node;
+            oldTail.setNext(node);
+            node.setPrevious(oldTail);
+        }
+        historyLinkedMap.put(taskId, node);
+    }
+
+    @Override
+    public void remove(int id) {
+        if (historyLinkedMap.containsKey(id)) {
+            HistoryNode nodeToRemove = historyLinkedMap.get(id);
+            HistoryNode prevNode = nodeToRemove.getPrevious();
+            HistoryNode nextNode = nodeToRemove.getNext();
+            if (prevNode == null && nextNode == null) {
+                head = null;
+                tail = null;
+            } else if (prevNode == null) {
+                nextNode.setPrevious(null);
+                head = nextNode;
+            } else if (nextNode == null) {
+                prevNode.setNext(null);
+                tail = prevNode;
+            } else {
+                prevNode.setNext(nextNode);
+                nextNode.setPrevious(prevNode);
             }
-            tasksHistory.add(task);
+            historyLinkedMap.remove(id);
         }
     }
 
     @Override
     public List<Task> getHistory() {
+        List<Task> tasksHistory = new ArrayList<>();
+        if (head != null) {
+            HistoryNode node = head; //от старых к новым
+            while (node != null) {
+                tasksHistory.add(node.getTask());
+                node = node.getNext();
+            }
+        }
         return tasksHistory;
     }
 }
