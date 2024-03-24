@@ -17,6 +17,14 @@ public class Task {
         taskType = TaskTypes.TASK;
     }
 
+    public Task(Task task) {
+        this.id = task.getId();
+        this.name = task.getName();
+        this.description = task.getDescription();
+        this.status = getStatus();
+        taskType = TaskTypes.TASK;
+    }
+
     @Override
     public int hashCode() {
         return id;
@@ -38,7 +46,7 @@ public class Task {
         return id;
     }
 
-    public void setStatus (Status status) {
+    public void setStatus(Status status) {
         this.status = status;
     }
 
@@ -53,5 +61,13 @@ public class Task {
     @Override
     public String toString() {
         return "Task{id='" + id + ", 'name='" + name + "', description='" + description + "', status=" + status + "'}";
+    }
+
+    public String getName() {
+        return name;
+    }
+
+    public String getDescription() {
+        return description;
     }
 }

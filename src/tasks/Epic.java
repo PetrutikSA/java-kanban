@@ -6,11 +6,19 @@ import tasks.enums.TaskTypes;
 import java.util.ArrayList;
 import java.util.List;
 
-public class Epic extends Task{
-     private List<Integer> subTasksIds;
-     public Epic(String name, String description) {
+public class Epic extends Task {
+    private List<Integer> subTasksIds;
+
+    public Epic(String name, String description) {
         super(name, description, Status.NEW);
         subTasksIds = new ArrayList<>();
+        taskType = TaskTypes.EPIC;
+    }
+
+    public Epic(Epic epic) {
+        super(epic.getName(), epic.getDescription(), epic.getStatus());
+        this.id = epic.getId();
+        subTasksIds = epic.getSubTasksIds();
         taskType = TaskTypes.EPIC;
     }
 
@@ -28,5 +36,9 @@ public class Epic extends Task{
     public String toString() {
         return "Epic{id='" + id + ", 'name='" + name + "', description='" + description + "', status=" + status
                 + ", subtasksNumber='" + subTasksIds.size() + "'}";
+    }
+
+    public void setSubTasksIds(List<Integer> subTasksIds) {
+        this.subTasksIds = subTasksIds;
     }
 }
