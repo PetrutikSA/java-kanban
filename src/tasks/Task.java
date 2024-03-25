@@ -21,7 +21,7 @@ public class Task {
         this.id = task.getId();
         this.name = task.getName();
         this.description = task.getDescription();
-        this.status = getStatus();
+        this.status = task.getStatus();
         taskType = TaskTypes.TASK;
     }
 
