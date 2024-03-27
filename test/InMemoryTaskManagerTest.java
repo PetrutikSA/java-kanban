@@ -9,7 +9,6 @@ import tasks.Task;
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.*;
-import static org.junit.jupiter.api.Assertions.assertEquals;
 
 class InMemoryTaskManagerTest {
     TaskManager taskManager;
@@ -147,5 +146,27 @@ class InMemoryTaskManagerTest {
                 taskManager.getTask(9).toString(), "Изменения проведены некорректно");
         assertEquals(Status.IN_PROGRESS, taskManager.getTask(4).getStatus(), "Статус эпика не изменен");
         assertEquals(Status.DONE, taskManager.getTask(5).getStatus(), "Статус эпика не изменен");
+    }
+
+    @Test
+    void clearingEpicsSubtaskListWhenDeleteSubtask() {
+        taskManager.removeTask(9);
+        Epic epic1 = (Epic) taskManager.getTask(4);
+        Epic epic2 = (Epic) taskManager.getTask(5);
+        assertEquals(3, epic1.getSubTasksIds().size(), "Некорректный размер списка подзадач");
+        assertEquals(0, epic2.getSubTasksIds().size(), "Некорректный размер списка подзадач");
+    }
+
+    @Test
+    void dataInBaseCannotBeChangedWithoutUsingManager() {
+        Task task = new Task("Name", "Description", Status.NEW);
+        taskManager.createTask(task);
+        task.setId(16);
+        Task taskInManager = taskManager.getTask(16);
+        assertNull(taskInManager, "Пользователь изменил данные извне");
+        taskInManager = taskManager.getTask(10);
+        taskInManager.setStatus(Status.DONE);
+        assertEquals("Task{id='10, 'name='Name', description='Description', status=NEW'}",
+                taskManager.getTask(10).toString(), "Пользователь изменил данные через метод getTask");
     }
 }

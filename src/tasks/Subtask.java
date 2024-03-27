@@ -5,9 +5,17 @@ import tasks.enums.TaskTypes;
 
 public class Subtask extends Task {
     private Integer epicId;
+
     public Subtask(String name, String description, Status status, int epicId) {
         super(name, description, status);
         this.epicId = epicId;
+        taskType = TaskTypes.SUBTASK;
+    }
+
+    public Subtask(Subtask subtask) {
+        super(subtask.getName(), subtask.description, subtask.getStatus());
+        this.id = subtask.getId();
+        this.epicId = subtask.getEpicId();
         taskType = TaskTypes.SUBTASK;
     }
 

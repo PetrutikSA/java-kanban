@@ -45,23 +45,35 @@ public class InMemoryTaskManager implements TaskManager {
 
     @Override
     public void removeTaskPool() {
+        clearHistoryWhenRemovingPool(taskPool);
         taskPool.clear();
     }
 
     @Override
     public void removeEpicPool() {
+        clearHistoryWhenRemovingPool(epicPool);
+        clearHistoryWhenRemovingPool(subtaskPool);
         epicPool.clear();
         subtaskPool.clear();
     }
 
     @Override
     public void removeSubtaskPool() {
+        clearHistoryWhenRemovingPool(subtaskPool);
         subtaskPool.clear();
         //Пересмотр статуса эпиков согласно логике программы
         for (Integer id : epicPool.keySet()) {
             Epic epic = epicPool.get(id);
             epic.getSubTasksIds().clear();
             epicStatusControl(epic);
+        }
+    }
+
+    private void clearHistoryWhenRemovingPool(Map<Integer, ? extends Task> pool) {
+        if (!pool.isEmpty()) {
+            for (int id : pool.keySet()) {
+                historyManager.remove(id);
+            }
         }
     }
 
@@ -72,13 +84,13 @@ public class InMemoryTaskManager implements TaskManager {
 
     //Метод вызывается из remove и update, по ТЗ должна собираться история только просмотренных пользователем задач
     private Task getTask(int id, boolean shouldBeAddToHistory) {
-        Task task;
+        Task task = null;
         if (taskPool.containsKey(id)) {
-            task = taskPool.get(id);
+            task = new Task(taskPool.get(id));
         } else if (epicPool.containsKey(id)) {
-            task = epicPool.get(id);
-        } else {
-            task = subtaskPool.getOrDefault(id, null);
+            task = new Epic(epicPool.get(id));
+        } else if (subtaskPool.containsKey(id)) {
+            task = new Subtask(subtaskPool.get(id));
         }
         if (task != null && shouldBeAddToHistory) {
             historyManager.addTaskToHistory(task);
@@ -94,17 +106,17 @@ public class InMemoryTaskManager implements TaskManager {
             TaskTypes taskType = task.getTaskType();
             switch (taskType) {
                 case TASK:
-                    taskPool.put(lastTaskId, task);
+                    taskPool.put(lastTaskId, new Task(task));
                     break;
                 case EPIC:
                     Epic epic = (Epic) task;
-                    epicPool.put(lastTaskId, epic);
+                    epicPool.put(lastTaskId, new Epic(epic));
                     break;
                 case SUBTASK:
                     Subtask subtask = (Subtask) task;
                     int connectedEpicId = subtask.getEpicId();
                     Epic connectedEpic = epicPool.get(connectedEpicId);
-                    subtaskPool.put(lastTaskId, subtask);
+                    subtaskPool.put(lastTaskId, new Subtask(subtask));
                     connectedEpic.addSubTasks(lastTaskId);
                     epicStatusControl(connectedEpic);
                     break;
@@ -122,14 +134,15 @@ public class InMemoryTaskManager implements TaskManager {
             if (oldTask != null && taskType.equals(oldTask.getTaskType())) {
                 switch (taskType) {
                     case TASK:
-                        taskPool.put(taskId, task);
+                        taskPool.put(taskId, new Task(task));
                         break;
                     case EPIC:
-                        epicPool.put(taskId, (Epic) task);
+                        Epic epic = (Epic) task;
+                        epicPool.put(taskId, new Epic(epic));
                         break;
                     case SUBTASK:
                         Subtask subtask = (Subtask) task;
-                        subtaskPool.put(taskId, subtask);
+                        subtaskPool.put(taskId, new Subtask(subtask));
                         int connectedEpicId = subtask.getEpicId();
                         epicStatusControl(epicPool.get(connectedEpicId));
                         break;
@@ -142,6 +155,7 @@ public class InMemoryTaskManager implements TaskManager {
     public void removeTask(int id) {
         Task task = getTask(id, false);
         if (task != null) {
+            historyManager.remove(id);
             TaskTypes taskType = task.getTaskType();
             switch (taskType) {
                 case TASK:

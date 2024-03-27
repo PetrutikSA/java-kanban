@@ -1,7 +1,9 @@
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import tasks.enums.Status;
+import tasks.Epic;
+import tasks.Subtask;
 import tasks.Task;
+import tasks.enums.Status;
 
 import java.util.List;
 
@@ -9,63 +11,81 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 class InMemoryHistoryManagerTest {
-
-    HistoryManager historyManager;
-    Task task;
+    TaskManager taskManager;
 
     @BeforeEach
     void beforeEach() {
-        historyManager = Managers.getDefaultHistory();
-        task = new Task("Name", "Description", Status.NEW);
-        task.setId(1);
-        historyManager.addTaskToHistory(task);
+        taskManager = Managers.getDefault();
+        taskManager.createTask(new Task("Name", "Description", Status.NEW));
+        taskManager.getTask(1);
     }
 
     @Test
     void getHistory() {
-        List<Task> tasks = historyManager.getHistory();
+        List<Task> tasks = taskManager.getHistory();
         assertNotNull(tasks, "История не возвращается из HistoryManager");
         assertEquals(1, tasks.size(), "Возвращается некорректный список истории просмотров задач");
     }
 
     @Test
     void addTaskToHistory() {
-        Task task2 = new Task("Name2", "Description2", Status.NEW);
-        historyManager.addTaskToHistory(task2);
-        List<Task> tasks = historyManager.getHistory();
-        assertEquals(2, tasks.size(), "Задача не добавлена");
+        taskManager.createTask(new Task("Name2", "Description2", Status.NEW));
+        assertEquals(1, taskManager.getHistory().size(), "Задача в историю добавляется при создании, а не просмотре");
+        taskManager.getTask(2);
+        assertEquals(2, taskManager.getHistory().size(), "Задача не добавлена в историю после просмотра");
     }
 
     @Test
     void correctSizeHistoryControl() {
-        for (int i = 1; i < 13; i++) {
-            Task newTask = new Task("Name" + i, "Description" + i, Status.NEW);
-            newTask.setId((i + 1));
-            historyManager.addTaskToHistory(newTask);
+        for (int i = 1; i <= 13; i++) {
+            taskManager.createTask(new Task("Name" + i, "Description" + i, Status.NEW));
+            taskManager.getTask(i + 1); //одна задача уже есть создана в BeforeEach
         }
-        List<Task> history = historyManager.getHistory();
-        assertEquals(10, history.size(), "Некорректный размер истории");
-        assertEquals("Task{id='4, 'name='Name3', description='Description3', status=NEW'}",
-                history.get(0).toString(), "Некорректный порядок задач в истории");
-        assertEquals("Task{id='9, 'name='Name8', description='Description8', status=NEW'}",
+
+        for (int i = 1; i <= 5; i++) {
+            taskManager.getTask(i + 1);
+        }
+
+        List<Task> history = taskManager.getHistory();
+        assertEquals(14, history.size(), "Некорректный размер истории");
+        assertEquals("Task{id='1, 'name='Name', description='Description', status=NEW'}",
+                history.get(0).toString(), "Некорректный порядок задач в истории"); //вызов в BeforeEach
+        assertEquals("Task{id='11, 'name='Name10', description='Description10', status=NEW'}",
                 history.get(5).toString(), "Некорректный порядок задач в истории");
-        assertEquals("Task{id='13, 'name='Name12', description='Description12', status=NEW'}",
+        assertEquals("Task{id='2, 'name='Name1', description='Description1', status=NEW'}",
                 history.get(9).toString(), "Некорректный порядок задач в истории");
     }
 
     @Test
-    void historyManagerSaveTaskConditions() {
-        TaskManager taskManager = Managers.getDefault();
-        taskManager.createTask(task);
-        taskManager.getTask(1);
+    void historyManagerSaveTaskLastConditions() {
         Task updateTask = new Task("Name", "Task done", Status.DONE);
         updateTask.setId(1);
         taskManager.updateTask(updateTask);
         taskManager.getTask(1);
         List<Task> tasks = taskManager.getHistory();
-        assertEquals("Task{id='1, 'name='Name', description='Description', status=NEW'}",
-                tasks.get(0).toString(), "Первая версия задачи не корректно сохранена");
+        assertEquals(1, tasks.size(), "Некорректный размер истории");
         assertEquals("Task{id='1, 'name='Name', description='Task done', status=DONE'}",
-                tasks.get(1).toString(), "Вторая версия задачи не корректно сохранена");
+                tasks.get(0).toString(), "Вторая версия задачи не корректно сохранена");
+    }
+
+    @Test
+    void historyManagerClearWhenRemoveEpicPool() {
+        Epic epic1 = new Epic("Epic1", "First epic to complete");
+        Epic epic2 = new Epic("Epic2", "Second epic to complete");
+        Subtask subtask1 = new Subtask("Subtask1", "First Subtask to first epic", Status.NEW, 2);
+        Subtask subtask2 = new Subtask("Subtask2", "Second Subtask to first epic", Status.NEW, 3);
+        taskManager.createTask(epic1);
+        taskManager.createTask(epic2);
+        taskManager.createTask(subtask1);
+        taskManager.createTask(subtask2);
+        taskManager.getTask(2);
+        taskManager.getTask(3);
+        taskManager.getTask(4);
+        taskManager.getTask(5);
+        List<Task> history = taskManager.getHistory();
+        assertEquals(5, history.size(), "Некорректный размер истории");
+        taskManager.removeEpicPool();
+        history = taskManager.getHistory();
+        assertEquals(1, history.size(), "Некорректный размер истории");
     }
 }
