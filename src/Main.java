@@ -37,16 +37,19 @@ public class Main {
 
         printAll(taskManager);
 
-        Epic taskUpdate2 = new Epic("Epic1", "Changed epic and subtasks");
-        taskUpdate2.addSubTasks(taskUpdate1.getId());
-        taskUpdate2.addSubTasks(subtask1.getId());
+        Epic taskUpdate2 = new Epic("Epic1", "Changed epic description");
+        taskUpdate2.addSubTasks(5);
+        taskUpdate2.addSubTasks(6);
+        subtask2 = (Subtask) taskManager.getTask(6);
+        subtask2.setStatus(Status.IN_PROGRESS);
+        taskManager.updateTask(taskUpdate2);
+        taskManager.updateTask(subtask2);
         taskUpdate2.setId(3);
         taskUpdate1.setStatus(Status.DONE);
         taskManager.updateTask(taskUpdate1);
-        taskManager.updateTask(taskUpdate2);
         taskManager.removeTask(2);
         taskManager.getTask(3);
-        taskManager.getTask(6);
+        taskManager.getTask(7);
         printAll(taskManager);
 
         taskManager.removeEpicPool();
