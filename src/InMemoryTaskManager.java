@@ -10,11 +10,11 @@ import java.util.List;
 import java.util.Map;
 
 public class InMemoryTaskManager implements TaskManager {
-    private final Map<Integer, Task> taskPool = new HashMap<>();
-    private final Map<Integer, Subtask> subtaskPool = new HashMap<>();
-    private final Map<Integer, Epic> epicPool = new HashMap<>();
-    private int lastTaskId = 0;
-    private final HistoryManager historyManager = Managers.getDefaultHistory();
+    protected final Map<Integer, Task> taskPool = new HashMap<>();
+    protected final Map<Integer, Subtask> subtaskPool = new HashMap<>();
+    protected final Map<Integer, Epic> epicPool = new HashMap<>();
+    protected int lastTaskId = 0;
+    protected final HistoryManager historyManager = Managers.getDefaultHistory();
 
     @Override
     public List<Task> getTasksList() {

@@ -34,4 +34,8 @@ public class Subtask extends Task {
         return "Subtask{id='" + id + ", 'name='" + name + "', description='" + description + "', status=" + status
                 + ", epicID='" + epicId + "'}";
     }
+
+    public String saveToString () {
+        return String.format("%s,%s", super.saveToString(), epicId);
+    }
 }
