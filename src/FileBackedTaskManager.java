@@ -19,19 +19,19 @@ public class FileBackedTaskManager extends InMemoryTaskManager implements TaskMa
     private final String currentDir;
     private final Path file;
 
-    FileBackedTaskManager() { // значения по умолчанию
+    public FileBackedTaskManager() { // значения по умолчанию
         fileName = "db.csv";
         currentDir = System.getProperty("user.dir");
         file = Paths.get(currentDir, fileName);
     }
 
-    FileBackedTaskManager(String fileName, String currentDir) {
+    public FileBackedTaskManager(String fileName, String currentDir) {
         this.fileName = fileName;
         this.currentDir = currentDir;
         file = Paths.get(currentDir, fileName);
     }
 
-    void save() {
+    private void save() {
         StringBuilder sb = new StringBuilder();
         sb.append("DB/History,TaskType,Id,Name,Description,Status,Epic/Subtasks");
         if (!taskPool.isEmpty()) {
@@ -72,8 +72,8 @@ public class FileBackedTaskManager extends InMemoryTaskManager implements TaskMa
             String content = Files.readString(file.toPath());
             String[] contentArray = content.split("\n");
             if (contentArray.length > 1) { //в противном случае пустой
-                for (String s : contentArray) {
-                    String[] line = s.split(",");
+                for (int i = 1; i < contentArray.length; i++) {
+                    String[] line = contentArray[i].split(",");
                     boolean isDataBaseValue = line[0].equals("DB");
                     TaskTypes taskType = TaskTypes.valueOf(line[1]);
                     int id = Integer.parseInt(line[2]);
@@ -111,7 +111,7 @@ public class FileBackedTaskManager extends InMemoryTaskManager implements TaskMa
                         case SUBTASK:
                             int epicId = Integer.parseInt(line[6]);
                             Subtask subtask = new Subtask(name, description, status, epicId);
-                            subtask.setEpicId(id);
+                            subtask.setId(id);
                             if (isDataBaseValue) {
                                 fileBackedTaskManager.subtaskPool.put(id, subtask);
                             } else {

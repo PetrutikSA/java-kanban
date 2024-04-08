@@ -98,7 +98,7 @@ class InMemoryTaskManagerTest {
     }
 
     @Test
-    void correctRemoveTSubtask() {
+    void correctRemoveSubtask() {
         taskManager.removeTask(7);
         assertEquals(3, taskManager.getTasksList().size(), "Некорректный размер пулла задач");
         assertEquals(2, taskManager.getEpicsList().size(), "Некорректный размер пулла эпиков");

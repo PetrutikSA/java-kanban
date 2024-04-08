@@ -71,7 +71,7 @@ public class Task {
         return description;
     }
 
-    public String saveToString () {
+    public String saveToString() {
         return String.format("%s,%d,%s,%s,%s", taskType, id, name, description, status);
     }
 }
