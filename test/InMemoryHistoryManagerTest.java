@@ -1,3 +1,5 @@
+import managers.Managers;
+import managers.tasks.TaskManager;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import tasks.Epic;
@@ -23,7 +25,7 @@ class InMemoryHistoryManagerTest {
     @Test
     void getHistory() {
         List<Task> tasks = taskManager.getHistory();
-        assertNotNull(tasks, "История не возвращается из HistoryManager");
+        assertNotNull(tasks, "История не возвращается из managers.history.HistoryManager");
         assertEquals(1, tasks.size(), "Возвращается некорректный список истории просмотров задач");
     }
 

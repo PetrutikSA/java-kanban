@@ -43,7 +43,7 @@ public class Epic extends Task {
     }
 
     public String saveToString() {
-        String subtasksToString = " "; // для метода load из FileBackedTaskManager
+        String subtasksToString = " "; // для метода load из managers.tasks.FileBackedTaskManager
         if (!subTasksIds.isEmpty()) {
             String[] subtasksArray = new String[subTasksIds.size()];
             for (int i = 0; i < subtasksArray.length; i++) {

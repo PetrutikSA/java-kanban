@@ -1,3 +1,7 @@
+package managers.tasks;
+
+import managers.Managers;
+import managers.history.HistoryManager;
 import tasks.Epic;
 import tasks.enums.Status;
 import tasks.Subtask;

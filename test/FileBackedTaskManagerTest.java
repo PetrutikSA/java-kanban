@@ -1,3 +1,5 @@
+import managers.tasks.FileBackedTaskManager;
+import managers.tasks.ManagerSaveException;
 import org.junit.jupiter.api.*;
 import tasks.Epic;
 import tasks.Subtask;
@@ -64,7 +66,7 @@ class FileBackedTaskManagerTest {
 
         FileBackedTaskManager afterLoadFileBackedTaskManager = FileBackedTaskManager.load(file.toFile());
         List<Task> history = afterLoadFileBackedTaskManager.getHistory();
-        assertNotNull(history, "История не возвращается из HistoryManager");
+        assertNotNull(history, "История не возвращается из managers.history.HistoryManager");
         assertEquals(2, history.size(), "Возвращается некорректный список истории просмотров задач");
         assertEquals("Task{id='1, 'name='Task1', description='First task to complete', status=NEW'}",
                 afterLoadFileBackedTaskManager.getTask(1).toString(), "Созданная и полученная задача не совпадает");
@@ -93,7 +95,7 @@ class FileBackedTaskManagerTest {
         assertEquals(3, fileBackedTaskManager.getSubtasksList().size(), "Некорректный размер пулла подзадач");
 
         List<Task> history = fileBackedTaskManager.getHistory();
-        assertNotNull(history, "История не возвращается из HistoryManager");
+        assertNotNull(history, "История не возвращается из managers.history.HistoryManager");
         assertEquals(2, history.size(), "Возвращается некорректный список истории просмотров задач");
 
         assertEquals("Task{id='1, 'name='Task1', description='First task to complete', status=NEW'}",
@@ -142,7 +144,7 @@ class FileBackedTaskManagerTest {
         fileBackedTaskManager.getTask(3);
         FileBackedTaskManager afterLoadFileBackedTaskManager = FileBackedTaskManager.load(testDB.toFile());
         List<Task> history = afterLoadFileBackedTaskManager.getHistory();
-        assertNotNull(history, "История не возвращается из HistoryManager");
+        assertNotNull(history, "История не возвращается из managers.history.HistoryManager");
         assertEquals(3, history.size(), "Возвращается некорректный список истории просмотров задач");
         assertEquals("Subtask{id='6, 'name='Subtask3', description='First subtask to second epic', "
                         + "status=NEW, epicID='3'}", history.get(0).toString(),
