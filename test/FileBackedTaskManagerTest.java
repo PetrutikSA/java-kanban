@@ -15,8 +15,8 @@ import java.util.List;
 import static org.junit.jupiter.api.Assertions.*;
 
 class FileBackedTaskManagerTest {
-    String currentDir = System.getProperty("user.dir");
-    Path testDB;
+    private static final String currentDir = System.getProperty("user.dir");
+    private static Path testDB;
 
     @BeforeEach
     void beforeEach() {

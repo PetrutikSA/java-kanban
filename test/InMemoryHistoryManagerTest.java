@@ -11,7 +11,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 class InMemoryHistoryManagerTest {
-    TaskManager taskManager;
+    private static TaskManager taskManager;
 
     @BeforeEach
     void beforeEach() {

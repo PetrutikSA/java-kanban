@@ -11,7 +11,7 @@ import java.util.List;
 import static org.junit.jupiter.api.Assertions.*;
 
 class InMemoryTaskManagerTest {
-    TaskManager taskManager;
+    private static TaskManager taskManager;
 
     @BeforeEach
     void beforeEach() {

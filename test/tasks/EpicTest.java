@@ -6,12 +6,12 @@ import org.junit.jupiter.api.Test;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 class EpicTest {
-    Epic epic1;
-    Epic epic2;
+    private static Epic epic1;
+    private static Epic epic2;
 
     @Test
-    public void subtasksEqualsIfIdEquals () {
-        assertEquals(epic1,epic2, "Эпики не равны");
+    public void subtasksEqualsIfIdEquals() {
+        assertEquals(epic1, epic2, "Эпики не равны");
     }
 
     @Test
@@ -23,8 +23,8 @@ class EpicTest {
 
     @BeforeEach
     void beforeEach() {
-        epic1 = new Epic ("task1", "description1");
-        epic2 = new Epic ("task2", "description2");
+        epic1 = new Epic("task1", "description1");
+        epic2 = new Epic("task2", "description2");
         epic1.setId(1);
         epic2.setId(1);
     }
