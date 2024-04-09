@@ -14,7 +14,7 @@ import java.util.List;
 import tasks.enums.Status;
 import tasks.enums.TaskTypes;
 
-public class FileBackedTaskManager extends InMemoryTaskManager implements TaskManager {
+public class FileBackedTaskManager extends InMemoryTaskManager {
     private final String fileName;
     private final String currentDir;
     private final Path file;
