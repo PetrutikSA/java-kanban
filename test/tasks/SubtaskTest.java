@@ -7,8 +7,8 @@ import tasks.enums.Status;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 class SubtaskTest {
-    private static Subtask subtask1;
-    private static Subtask subtask2;
+    private Subtask subtask1;
+    private Subtask subtask2;
 
     @Test
     public void subtasksEqualsIfIdEquals() {

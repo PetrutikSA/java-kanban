@@ -17,13 +17,13 @@ import java.util.List;
 import static org.junit.jupiter.api.Assertions.*;
 
 class FileBackedTaskManagerTest {
-    private static final String currentDir = System.getProperty("user.dir");
-    private static Path testDB;
+    private static final String CURRENT_DIR = System.getProperty("user.dir");
+    private Path testDB;
 
     @BeforeEach
     void beforeEach() {
         try {
-            testDB = Files.createTempFile(Paths.get(currentDir), "testDB", ".csv");
+            testDB = Files.createTempFile(Paths.get(CURRENT_DIR), "testDB", ".csv");
             try (Writer writer = new FileWriter(testDB.toFile())) {
                 writer.append("DB/History,TaskType,Id,Name,Description,Status,Epic/Subtasks\n");
                 writer.append("DB,TASK,1,Task1,First task to complete,NEW\n");
@@ -54,7 +54,7 @@ class FileBackedTaskManagerTest {
         FileBackedTaskManager fileBackedTaskManager = new FileBackedTaskManager();
         fileBackedTaskManager.createTask(new Task("Task1", "First task to complete", Status.NEW));
         String fileName = "db.csv";
-        Path file = Paths.get(currentDir, fileName);
+        Path file = Paths.get(CURRENT_DIR, fileName);
         assertTrue(Files.exists(file), "Файл по умолчанию не создан");
 
         fileBackedTaskManager.createTask(new Epic("Epic1", "Epic to complete"));

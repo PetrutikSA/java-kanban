@@ -6,8 +6,8 @@ import org.junit.jupiter.api.Test;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 class EpicTest {
-    private static Epic epic1;
-    private static Epic epic2;
+    private Epic epic1;
+    private Epic epic2;
 
     @Test
     public void subtasksEqualsIfIdEquals() {
