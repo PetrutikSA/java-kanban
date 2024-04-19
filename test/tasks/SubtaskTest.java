@@ -7,12 +7,12 @@ import tasks.enums.Status;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 class SubtaskTest {
-    Subtask subtask1;
-    Subtask subtask2;
+    private Subtask subtask1;
+    private Subtask subtask2;
 
     @Test
-    public void subtasksEqualsIfIdEquals () {
-        assertEquals(subtask1,subtask1, "Подзадачи не равны");
+    public void subtasksEqualsIfIdEquals() {
+        assertEquals(subtask1, subtask2, "Подзадачи не равны");
     }
 
     @Test
@@ -24,8 +24,8 @@ class SubtaskTest {
 
     @BeforeEach
     void beforeEach() {
-        subtask1 = new Subtask ("task1", "description1", Status.NEW, 2);
-        subtask2 = new Subtask ("task2", "description2", Status.NEW,2);
+        subtask1 = new Subtask("task1", "description1", Status.NEW, 2);
+        subtask2 = new Subtask("task2", "description2", Status.NEW, 2);
         subtask1.setId(1);
         subtask2.setId(1);
     }

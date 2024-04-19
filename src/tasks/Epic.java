@@ -41,4 +41,16 @@ public class Epic extends Task {
     public void setSubTasksIds(List<Integer> subTasksIds) {
         this.subTasksIds = subTasksIds;
     }
+
+    public String saveToString() {
+        String subtasksToString = " "; // для метода load из managers.tasks.FileBackedTaskManager
+        if (!subTasksIds.isEmpty()) {
+            String[] subtasksArray = new String[subTasksIds.size()];
+            for (int i = 0; i < subtasksArray.length; i++) {
+                subtasksArray[i] = String.valueOf(subTasksIds.get(i));
+            }
+            subtasksToString = String.join("_", subtasksArray);
+        }
+        return String.format("%s,%s", super.saveToString(), subtasksToString);
+    }
 }

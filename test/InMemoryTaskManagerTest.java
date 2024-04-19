@@ -1,3 +1,5 @@
+import managers.Managers;
+import managers.tasks.TaskManager;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -11,7 +13,7 @@ import java.util.List;
 import static org.junit.jupiter.api.Assertions.*;
 
 class InMemoryTaskManagerTest {
-    TaskManager taskManager;
+    private TaskManager taskManager;
 
     @BeforeEach
     void beforeEach() {
@@ -98,7 +100,7 @@ class InMemoryTaskManagerTest {
     }
 
     @Test
-    void correctRemoveTSubtask() {
+    void correctRemoveSubtask() {
         taskManager.removeTask(7);
         assertEquals(3, taskManager.getTasksList().size(), "Некорректный размер пулла задач");
         assertEquals(2, taskManager.getEpicsList().size(), "Некорректный размер пулла эпиков");
