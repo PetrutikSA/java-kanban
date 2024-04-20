@@ -3,6 +3,7 @@ package tasks;
 import tasks.enums.Status;
 import tasks.enums.TaskTypes;
 
+import java.time.Duration;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
@@ -15,6 +16,9 @@ public class Epic extends Task {
         super(name, description, Status.NEW);
         subTasksIds = new ArrayList<>();
         taskType = TaskTypes.EPIC;
+        startTime = LocalDateTime.now();
+        duration = Duration.ZERO;
+        endTime = startTime;
     }
 
     public Epic(Epic epic) {
