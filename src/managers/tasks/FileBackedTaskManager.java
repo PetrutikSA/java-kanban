@@ -86,8 +86,8 @@ public class FileBackedTaskManager extends InMemoryTaskManager {
                     String name = line[3];
                     String description = line[4];
                     Status status = Status.valueOf(line[5]);
-                    LocalDateTime startTime = LocalDateTime.parse(line[6], FORMATTER);
-                    Duration duration = Duration.ofMinutes(Long.parseLong(line[7]));
+                    LocalDateTime startTime = (line[6].isBlank()) ? null : LocalDateTime.parse(line[6], FORMATTER);
+                    Duration duration = (line[7].isBlank()) ? null : Duration.ofMinutes(Long.parseLong(line[7]));
                     if (fileBackedTaskManager.lastTaskId < id) fileBackedTaskManager.lastTaskId = id;
 
                     switch (taskType) {
@@ -104,15 +104,15 @@ public class FileBackedTaskManager extends InMemoryTaskManager {
                             Epic epic = new Epic(name, description);
                             epic.setId(id);
                             epic.setStatus(status);
-                            epic.setStartTime(startTime);
-                            epic.setDuration(duration);
+                            if (startTime != null) epic.setStartTime(startTime);
+                            if (duration != null) epic.setDuration(duration);
                             if (!line[8].isBlank()) {
                                 String[] subtasksId = line[8].split("_");
                                 for (String currentSubtaskId : subtasksId) {
                                     epic.addSubTasks(Integer.parseInt(currentSubtaskId));
                                 }
                             }
-                            LocalDateTime endTime = LocalDateTime.parse(line[9], FORMATTER);
+                            LocalDateTime endTime = (line[9].isBlank()) ? null : LocalDateTime.parse(line[9], FORMATTER);
                             epic.setEndTime(endTime);
                             if (isDataBaseValue) {
                                 fileBackedTaskManager.epicPool.put(id, epic);

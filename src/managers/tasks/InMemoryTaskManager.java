@@ -72,6 +72,7 @@ public class InMemoryTaskManager implements TaskManager {
             Epic epic = epicPool.get(id);
             epic.getSubTasksIds().clear();
             epicStatusControl(epic);
+            epicTimeControl(epic);
         }
     }
 
@@ -245,6 +246,10 @@ public class InMemoryTaskManager implements TaskManager {
                 epic.setStartTime(startTime);
                 epic.setEndTime(endTime);
                 epic.setDuration(Duration.between(startTime, endTime));
+            } else {
+                epic.setStartTime(null);
+                epic.setDuration(null);
+                epic.setEndTime(null);
             }
         }
     }

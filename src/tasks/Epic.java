@@ -18,9 +18,6 @@ public class Epic extends Task {
         super(name, description, Status.NEW);
         subTasksIds = new ArrayList<>();
         taskType = TaskTypes.EPIC;
-        startTime = LocalDateTime.now();
-        duration = Duration.ZERO;
-        endTime = startTime;
     }
 
     public Epic(Epic epic) {
@@ -62,7 +59,8 @@ public class Epic extends Task {
             }
             subtasksToString = String.join("_", subtasksArray);
         }
-        return String.format("%s,%s,%s", super.saveToString(), subtasksToString, endTime.format(FORMATTER));
+        String endTimeToString = (endTime == null) ? " " : endTime.format(FORMATTER);
+        return String.format("%s,%s,%s", super.saveToString(), subtasksToString, endTimeToString);
     }
 
     @Override

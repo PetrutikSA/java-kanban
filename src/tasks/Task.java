@@ -87,8 +87,10 @@ public class Task {
     }
 
     public String saveToString() {
-        return String.format("%s,%d,%s,%s,%s,%s,%d", taskType, id, name, description, status
-                , startTime.format(FORMATTER), duration.toMinutes());
+        String startTimeToString = (startTime == null) ? " " : startTime.format(FORMATTER);
+        String durationToString = (duration == null) ? " " : String.valueOf(duration.toMinutes());
+        return String.format("%s,%d,%s,%s,%s,%s,%s", taskType, id, name, description, status
+                , startTimeToString, durationToString);
     }
 
     public LocalDateTime getEndTime() {
