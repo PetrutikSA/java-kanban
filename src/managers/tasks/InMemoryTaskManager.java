@@ -14,6 +14,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.TreeSet;
 
 public class InMemoryTaskManager implements TaskManager {
     protected final Map<Integer, Task> taskPool = new HashMap<>();
@@ -21,6 +22,7 @@ public class InMemoryTaskManager implements TaskManager {
     protected final Map<Integer, Epic> epicPool = new HashMap<>();
     protected int lastTaskId = 0;
     protected final HistoryManager historyManager = Managers.getDefaultHistory();
+    protected TreeSet<Task> prioritizedTasks = new TreeSet<>((o1, o2) -> o1.getStartTime().compareTo(o2.getStartTime()));
 
     @Override
     public List<Task> getTasksList() {
@@ -52,20 +54,25 @@ public class InMemoryTaskManager implements TaskManager {
     @Override
     public void removeTaskPool() {
         clearHistoryWhenRemovingPool(taskPool);
+        taskPool.keySet().stream()
+                .map(taskPool::get)
+                .forEach(task -> prioritizedTasks.remove(task));
         taskPool.clear();
     }
 
     @Override
     public void removeEpicPool() {
         clearHistoryWhenRemovingPool(epicPool);
-        clearHistoryWhenRemovingPool(subtaskPool);
         epicPool.clear();
-        subtaskPool.clear();
+        removeSubtaskPool();
     }
 
     @Override
     public void removeSubtaskPool() {
         clearHistoryWhenRemovingPool(subtaskPool);
+        subtaskPool.keySet().stream()
+                .map(subtaskPool::get)
+                .forEach(subtask -> prioritizedTasks.remove(subtask));
         subtaskPool.clear();
         //Пересмотр статуса эпиков согласно логике программы
         for (Integer id : epicPool.keySet()) {
@@ -113,7 +120,9 @@ public class InMemoryTaskManager implements TaskManager {
             TaskTypes taskType = task.getTaskType();
             switch (taskType) {
                 case TASK:
-                    taskPool.put(lastTaskId, new Task(task));
+                    Task taskToDB = new Task(task);
+                    taskPool.put(lastTaskId, taskToDB);
+                    checkAndPutInPrioritizedTasks(taskToDB);
                     break;
                 case EPIC:
                     Epic epic = (Epic) task;
@@ -123,7 +132,9 @@ public class InMemoryTaskManager implements TaskManager {
                     Subtask subtask = (Subtask) task;
                     int connectedEpicId = subtask.getEpicId();
                     Epic connectedEpic = epicPool.get(connectedEpicId);
-                    subtaskPool.put(lastTaskId, new Subtask(subtask));
+                    Subtask subtaskToDB = new Subtask(subtask);
+                    subtaskPool.put(lastTaskId, subtaskToDB);
+                    checkAndPutInPrioritizedTasks(subtaskToDB);
                     connectedEpic.addSubTasks(lastTaskId);
                     epicStatusControl(connectedEpic);
                     epicTimeControl(connectedEpic);
@@ -142,7 +153,11 @@ public class InMemoryTaskManager implements TaskManager {
             if (oldTask != null && taskType.equals(oldTask.getTaskType())) {
                 switch (taskType) {
                     case TASK:
-                        taskPool.put(taskId, new Task(task));
+                        Task oldTaskInDB = taskPool.get(taskId);
+                        Task newTaskToDB = new Task(task);
+                        taskPool.put(taskId, newTaskToDB);
+                        prioritizedTasks.remove(oldTaskInDB);
+                        checkAndPutInPrioritizedTasks(newTaskToDB);
                         break;
                     case EPIC:
                         Epic epic = (Epic) task;
@@ -150,7 +165,11 @@ public class InMemoryTaskManager implements TaskManager {
                         break;
                     case SUBTASK:
                         Subtask subtask = (Subtask) task;
-                        subtaskPool.put(taskId, new Subtask(subtask));
+                        Subtask oldSubtaskFromDB = subtaskPool.get(taskId);
+                        Subtask newSubtaskToDB = new Subtask(subtask);
+                        subtaskPool.put(taskId, newSubtaskToDB);
+                        prioritizedTasks.remove(oldSubtaskFromDB);
+                        checkAndPutInPrioritizedTasks(newSubtaskToDB);
                         int connectedEpicId = subtask.getEpicId();
                         epicStatusControl(epicPool.get(connectedEpicId));
                         epicTimeControl(epicPool.get(connectedEpicId));
@@ -168,18 +187,21 @@ public class InMemoryTaskManager implements TaskManager {
             TaskTypes taskType = task.getTaskType();
             switch (taskType) {
                 case TASK:
-                    taskPool.remove(id);
+                    Task oldTaskFromDB = taskPool.remove(id);
+                    prioritizedTasks.remove(oldTaskFromDB);
                     break;
                 case EPIC:
                     // Удаляются эпик из пулла, удаляются все связанные подзадачи
                     Epic epic = epicPool.remove(id);
                     for (Integer subtaskId : epic.getSubTasksIds()) {
-                        subtaskPool.remove(subtaskId);
+                        Subtask oldSubTaskInDBConnectedToEpic = subtaskPool.remove(subtaskId);
+                        prioritizedTasks.remove(oldSubTaskInDBConnectedToEpic);
                     }
                     break;
                 case SUBTASK:
                     // Удаляется подзадача из пулла, из эпика, проверяется статус эпика
                     Subtask subtask = subtaskPool.remove(id);
+                    prioritizedTasks.remove(subtask);
                     Epic connectedEpic = epicPool.get(subtask.getEpicId());
                     connectedEpic.getSubTasksIds().remove((Integer) id);
                     epicStatusControl(connectedEpic);
@@ -250,6 +272,19 @@ public class InMemoryTaskManager implements TaskManager {
                 epic.setStartTime(null);
                 epic.setDuration(null);
                 epic.setEndTime(null);
+            }
+        }
+    }
+
+    @Override
+    public List<Task> getPrioritizedTasks() {
+        return new ArrayList<>(prioritizedTasks);
+    }
+
+    private void checkAndPutInPrioritizedTasks(Task task) {
+        if (task != null) {
+            if (task.getStartTime() != null) {
+                prioritizedTasks.add(task);
             }
         }
     }

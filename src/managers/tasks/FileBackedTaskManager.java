@@ -96,6 +96,7 @@ public class FileBackedTaskManager extends InMemoryTaskManager {
                             task.setId(id);
                             if (isDataBaseValue) {
                                 fileBackedTaskManager.taskPool.put(id, task);
+                                fileBackedTaskManager.prioritizedTasks.add(task);
                             } else {
                                 fileBackedTaskManager.historyManager.addTaskToHistory(task);
                             }
@@ -126,6 +127,7 @@ public class FileBackedTaskManager extends InMemoryTaskManager {
                             subtask.setId(id);
                             if (isDataBaseValue) {
                                 fileBackedTaskManager.subtaskPool.put(id, subtask);
+                                fileBackedTaskManager.prioritizedTasks.add(subtask);
                             } else {
                                 fileBackedTaskManager.historyManager.addTaskToHistory(subtask);
                             }
