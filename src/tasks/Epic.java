@@ -3,11 +3,13 @@ package tasks;
 import tasks.enums.Status;
 import tasks.enums.TaskTypes;
 
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
 public class Epic extends Task {
     private List<Integer> subTasksIds;
+    private LocalDateTime endTime;
 
     public Epic(String name, String description) {
         super(name, description, Status.NEW);
@@ -18,8 +20,11 @@ public class Epic extends Task {
     public Epic(Epic epic) {
         super(epic.getName(), epic.getDescription(), epic.getStatus());
         this.id = epic.getId();
-        subTasksIds = epic.getSubTasksIds();
-        taskType = TaskTypes.EPIC;
+        this.subTasksIds = epic.getSubTasksIds();
+        this.taskType = TaskTypes.EPIC;
+        this.duration = epic.duration;
+        this.startTime = epic.startTime;
+        this.endTime = epic.endTime;
     }
 
     public void addSubTasks(int subTaskId) {
@@ -52,5 +57,10 @@ public class Epic extends Task {
             subtasksToString = String.join("_", subtasksArray);
         }
         return String.format("%s,%s", super.saveToString(), subtasksToString);
+    }
+
+    @Override
+    public LocalDateTime getEndTime() {
+        return endTime;
     }
 }

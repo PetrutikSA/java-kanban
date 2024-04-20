@@ -16,7 +16,9 @@ public class Subtask extends Task {
         super(subtask.getName(), subtask.description, subtask.getStatus());
         this.id = subtask.getId();
         this.epicId = subtask.getEpicId();
-        taskType = TaskTypes.SUBTASK;
+        this.taskType = TaskTypes.SUBTASK;
+        this.duration = subtask.duration;
+        this.startTime = subtask.startTime;
     }
 
     public Integer getEpicId() {

@@ -3,12 +3,17 @@ package tasks;
 import tasks.enums.Status;
 import tasks.enums.TaskTypes;
 
+import java.time.Duration;
+import java.time.LocalDateTime;
+
 public class Task {
     protected int id;
     protected String name;
     protected String description;
     protected Status status;
     protected TaskTypes taskType;
+    protected Duration duration;
+    protected LocalDateTime startTime;
 
     public Task(String name, String description, Status status) {
         this.name = name;
@@ -22,7 +27,9 @@ public class Task {
         this.name = task.getName();
         this.description = task.getDescription();
         this.status = task.getStatus();
-        taskType = TaskTypes.TASK;
+        this.taskType = TaskTypes.TASK;
+        this.duration = task.duration;
+        this.startTime = task.startTime;
     }
 
     @Override
@@ -73,5 +80,9 @@ public class Task {
 
     public String saveToString() {
         return String.format("%s,%d,%s,%s,%s", taskType, id, name, description, status);
+    }
+
+    public LocalDateTime getEndTime() {
+        return startTime.plus(duration);
     }
 }
