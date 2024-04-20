@@ -12,6 +12,8 @@ import java.io.Writer;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.time.Duration;
+import java.time.LocalDateTime;
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -25,15 +27,15 @@ class FileBackedTaskManagerTest {
         try {
             testDB = Files.createTempFile(Paths.get(CURRENT_DIR), "testDB", ".csv");
             try (Writer writer = new FileWriter(testDB.toFile())) {
-                writer.append("DB/History,TaskType,Id,Name,Description,Status,Epic/Subtasks\n");
-                writer.append("DB,TASK,1,Task1,First task to complete,NEW\n");
-                writer.append("DB,EPIC,2,Epic1,First epic to complete,NEW,4_5\n");
-                writer.append("DB,EPIC,3,Epic2,Second epic to complete,NEW,6\n");
-                writer.append("DB,SUBTASK,4,Subtask1,First subtask to first epic,NEW,2\n");
-                writer.append("DB,SUBTASK,5,Subtask2,Second subtask to first epic,NEW,2\n");
-                writer.append("DB,SUBTASK,6,Subtask3,First subtask to second epic,NEW,3\n");
-                writer.append("History,TASK,1,Task1,First task to complete,NEW\n");
-                writer.append("History,SUBTASK,6,Subtask3,First subtask to second epic,NEW,3");
+                writer.append("DB/History,TaskType,Id,Name,Description,Status,StartTime,Duration,Epic/Subtasks,EpicEndTime\n");
+                writer.append("DB,TASK,1,Task1,First task to complete,NEW,2024-05-12T18:30:00.000,2880\n");
+                writer.append("DB,EPIC,2,Epic1,First epic to complete,NEW,2024-04-28T09:00:00.000,54750,4_5,2024-06-05T09:30:00.000\n");
+                writer.append("DB,EPIC,3,Epic2,Second epic to complete,NEW,2024-07-03T15:15:00.000,1440,6,2024-07-04T15:15:00.000\n");
+                writer.append("DB,SUBTASK,4,Subtask1,First subtask to first epic,NEW,2024-04-28T09:00:00.000,480,2\n");
+                writer.append("DB,SUBTASK,5,Subtask2,Second subtask to first epic,NEW,2024-06-01T09:30:00.000,5760,2\n");
+                writer.append("DB,SUBTASK,6,Subtask3,First subtask to second epic,NEW,2024-07-03T15:15:00.000,1440,3\n");
+                writer.append("History,TASK,1,Task1,First task to complete,NEW,2024-05-12T18:30:00.000,2880\n");
+                writer.append("History,SUBTASK,6,Subtask3,First subtask to second epic,NEW,2024-07-03T15:15:00.000,1440,3");
             }
         } catch (IOException e) {
             throw new ManagerSaveException(e.getMessage(), e.getCause());
@@ -52,14 +54,14 @@ class FileBackedTaskManagerTest {
     @Test
     void createDefaultManager() {
         FileBackedTaskManager fileBackedTaskManager = new FileBackedTaskManager();
-        fileBackedTaskManager.createTask(new Task("Task1", "First task to complete", Status.NEW));
+        fileBackedTaskManager.createTask(new Task("Task1", "First task to complete", Status.NEW, LocalDateTime.of(2024, 5, 12, 18,30), Duration.ofDays(2)));
         String fileName = "db.csv";
         Path file = Paths.get(CURRENT_DIR, fileName);
         assertTrue(Files.exists(file), "Файл по умолчанию не создан");
 
         fileBackedTaskManager.createTask(new Epic("Epic1", "Epic to complete"));
-        fileBackedTaskManager.createTask(new Subtask("Subtask1", "First task to epic", Status.DONE, 2));
-        fileBackedTaskManager.createTask(new Subtask("Subtask2", "Second task to epic", Status.NEW, 2));
+        fileBackedTaskManager.createTask(new Subtask("Subtask1", "First Subtask to first epic", Status.DONE, 2, LocalDateTime.of(2024, 4, 28, 9,0), Duration.ofHours(8)));
+        fileBackedTaskManager.createTask(new Subtask("Subtask2", "Second Subtask to first epic", Status.NEW, 2, LocalDateTime.of(2024, 5, 15, 10,30), Duration.ofMinutes(25)));
         fileBackedTaskManager.getTask(1);
         fileBackedTaskManager.getTask(2);
         fileBackedTaskManager.getTask(1);
@@ -67,16 +69,17 @@ class FileBackedTaskManagerTest {
         FileBackedTaskManager afterLoadFileBackedTaskManager = FileBackedTaskManager.load(file.toFile());
         List<Task> history = afterLoadFileBackedTaskManager.getHistory();
         assertNotNull(history, "История не возвращается из managers.history.HistoryManager");
+        System.out.println(afterLoadFileBackedTaskManager.getTask(1));
         assertEquals(2, history.size(), "Возвращается некорректный список истории просмотров задач");
         assertEquals("Task{id='1, 'name='Task1', description='First task to complete', status=NEW'}",
                 afterLoadFileBackedTaskManager.getTask(1).toString(), "Созданная и полученная задача не совпадает");
         assertEquals("Epic{id='2, 'name='Epic1', description='Epic to complete', status=IN_PROGRESS, "
                         + "subtasksNumber='2'}", afterLoadFileBackedTaskManager.getTask(2).toString(),
                 "Созданный и полученный эпик не совпадает");
-        assertEquals("Subtask{id='3, 'name='Subtask1', description='First task to epic', "
+        assertEquals("Subtask{id='3, 'name='Subtask1', description='First Subtask to first epic', "
                         + "status=DONE, epicID='2'}", afterLoadFileBackedTaskManager.getTask(3).toString(),
                 "Созданная и полученная подзадача не совпадает");
-        assertEquals("Subtask{id='4, 'name='Subtask2', description='Second task to epic', "
+        assertEquals("Subtask{id='4, 'name='Subtask2', description='Second Subtask to first epic', "
                         + "status=NEW, epicID='2'}", afterLoadFileBackedTaskManager.getTask(4).toString(),
                 "Созданная и полученная подзадача не совпадает");
         try {
@@ -159,7 +162,7 @@ class FileBackedTaskManagerTest {
     @Test
     void correctMaintainingIdNumbering() {
         FileBackedTaskManager fileBackedTaskManager = FileBackedTaskManager.load(testDB.toFile());
-        fileBackedTaskManager.createTask(new Task("Task2", "Second task to complete", Status.NEW));
+        fileBackedTaskManager.createTask(new Task("Task2", "Second task to complete", Status.NEW, LocalDateTime.of(2024, 7, 28, 12,0), Duration.ofHours(2)));
         FileBackedTaskManager afterLoadFileBackedTaskManager = FileBackedTaskManager.load(testDB.toFile());
         assertEquals("Task{id='7, 'name='Task2', description='Second task to complete', status=NEW'}",
                 afterLoadFileBackedTaskManager.getTask(7).toString(), "Некорректная нумерация новых задач");
@@ -168,7 +171,7 @@ class FileBackedTaskManagerTest {
     @Test
     void updateTask() {
         FileBackedTaskManager fileBackedTaskManager = FileBackedTaskManager.load(testDB.toFile());
-        Task newTask = new Task("Task1", "First task updated Status", Status.DONE);
+        Task newTask = new Task("Task1", "First task updated Status", Status.DONE, LocalDateTime.of(2024, 5, 12, 18,30), Duration.ofDays(2));
         newTask.setId(1);
         fileBackedTaskManager.updateTask(newTask);
         FileBackedTaskManager afterLoadFileBackedTaskManager = FileBackedTaskManager.load(testDB.toFile());
@@ -179,7 +182,7 @@ class FileBackedTaskManagerTest {
     @Test
     void updateSubtask() {
         FileBackedTaskManager fileBackedTaskManager = FileBackedTaskManager.load(testDB.toFile());
-        Subtask newSubtask = new Subtask("Subtask2", "Second subtask to first epic updated", Status.DONE, 2);
+        Subtask newSubtask = new Subtask("Subtask2", "Second subtask to first epic updated", Status.DONE, 2, LocalDateTime.of(2024, 6, 1, 9,30), Duration.ofDays(4));
         newSubtask.setId(5);
         fileBackedTaskManager.updateTask(newSubtask);
         FileBackedTaskManager afterLoadFileBackedTaskManager = FileBackedTaskManager.load(testDB.toFile());

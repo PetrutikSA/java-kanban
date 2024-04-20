@@ -8,6 +8,8 @@ import tasks.enums.Status;
 import tasks.Subtask;
 import tasks.Task;
 
+import java.time.Duration;
+import java.time.LocalDateTime;
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -18,15 +20,15 @@ class InMemoryTaskManagerTest {
     @BeforeEach
     void beforeEach() {
         taskManager = Managers.getDefault();
-        taskManager.createTask(new Task("Task1", "First task to complete", Status.NEW));
-        taskManager.createTask(new Task("Task2", "Second task to complete", Status.NEW));
-        taskManager.createTask(new Task("Task3", "Third task to complete", Status.NEW));
+        taskManager.createTask(new Task("Task1", "First task to complete", Status.NEW, LocalDateTime.of(2024, 5, 12, 18,30), Duration.ofDays(2)));
+        taskManager.createTask(new Task("Task2", "Second task to complete", Status.NEW, LocalDateTime.of(2024, 4, 30, 12,0), Duration.ofHours(3)));
+        taskManager.createTask(new Task("Task3", "Third task to complete", Status.NEW, LocalDateTime.of(2024, 4, 29, 21,0), Duration.ofMinutes(30)));
         taskManager.createTask(new Epic("Epic1", "First epic to complete"));
         taskManager.createTask(new Epic("Epic2", "Second epic to complete"));
-        taskManager.createTask(new Subtask("Subtask1", "First Subtask to first epic", Status.NEW, 4));
-        taskManager.createTask(new Subtask("Subtask2", "Second Subtask to first epic", Status.NEW, 4));
-        taskManager.createTask(new Subtask("Subtask3", "Third Subtask to first epic", Status.NEW, 4));
-        taskManager.createTask(new Subtask("Subtask4", "First Subtask to second epic", Status.NEW, 5));
+        taskManager.createTask(new Subtask("Subtask1", "First Subtask to first epic", Status.NEW, 4, LocalDateTime.of(2024, 4, 28, 9,0), Duration.ofHours(8)));
+        taskManager.createTask(new Subtask("Subtask2", "Second Subtask to first epic", Status.NEW, 4, LocalDateTime.of(2024, 5, 15, 10,30), Duration.ofMinutes(25)));
+        taskManager.createTask(new Subtask("Subtask3", "Third Subtask to first epic", Status.NEW, 4, LocalDateTime.of(2024, 6, 1, 9,30), Duration.ofDays(4)));
+        taskManager.createTask(new Subtask("Subtask4", "First Subtask to second epic", Status.NEW, 5, LocalDateTime.of(2024, 7, 3, 15,15), Duration.ofDays(1)));
     }
 
     @Test
@@ -114,7 +116,7 @@ class InMemoryTaskManagerTest {
 
     @Test
     void correctUpdateTask() {
-        Task newTask = new Task("Task2", "Second task updatet Status", Status.DONE);
+        Task newTask = new Task("Task2", "Second task updatet Status", Status.DONE, LocalDateTime.of(2024, 4, 30, 12,0), Duration.ofHours(3));
         newTask.setId(2);
         taskManager.updateTask(newTask);
         correctFormingPoolsOfTasks();
@@ -127,6 +129,9 @@ class InMemoryTaskManagerTest {
         Epic newEpic = new Epic("Epic2", "Second epic updated");
         newEpic.setId(5);
         newEpic.addSubTasks(9);
+        newEpic.setStartTime(LocalDateTime.of(2024, 7, 3, 15,15));
+        newEpic.setEndTime(LocalDateTime.of(2024, 7, 4, 15,15));
+        newEpic.setDuration(Duration.ofDays(1));
         taskManager.updateTask(newEpic);
         correctFormingPoolsOfTasks();
         assertEquals("Epic{id='5, 'name='Epic2', description='Second epic updated', status=NEW, subtasksNumber='1'}",
@@ -135,8 +140,8 @@ class InMemoryTaskManagerTest {
 
     @Test
     void correctUpdateSubtaskAndConnectedEpicStatus() {
-        Subtask newSubtask3 = new Subtask("Subtask3", "Third Subtask status change", Status.IN_PROGRESS, 4);
-        Subtask newSubtask4 = new Subtask("Subtask4", "First Subtask to second epic status change", Status.DONE, 5);
+        Subtask newSubtask3 = new Subtask("Subtask3", "Third Subtask status change", Status.IN_PROGRESS, 4, LocalDateTime.of(2024, 6, 1, 9,30), Duration.ofDays(4));
+        Subtask newSubtask4 = new Subtask("Subtask4", "First Subtask to second epic status change", Status.DONE, 5, LocalDateTime.of(2024, 7, 3, 15,15), Duration.ofDays(1));
         newSubtask3.setId(8);
         newSubtask4.setId(9);
         taskManager.updateTask(newSubtask3);
@@ -161,7 +166,7 @@ class InMemoryTaskManagerTest {
 
     @Test
     void dataInBaseCannotBeChangedWithoutUsingManager() {
-        Task task = new Task("Name", "Description", Status.NEW);
+        Task task = new Task("Name", "Description", Status.NEW, LocalDateTime.of(2024, 7, 3, 15,15), Duration.ofDays(1));
         taskManager.createTask(task);
         task.setId(16);
         Task taskInManager = taskManager.getTask(16);

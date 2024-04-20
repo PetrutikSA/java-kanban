@@ -107,7 +107,7 @@ public class FileBackedTaskManager extends InMemoryTaskManager {
                             epic.setStartTime(startTime);
                             epic.setDuration(duration);
                             if (!line[8].isBlank()) {
-                                String[] subtasksId = line[6].split("_");
+                                String[] subtasksId = line[8].split("_");
                                 for (String currentSubtaskId : subtasksId) {
                                     epic.addSubTasks(Integer.parseInt(currentSubtaskId));
                                 }
@@ -122,7 +122,7 @@ public class FileBackedTaskManager extends InMemoryTaskManager {
                             break;
                         case SUBTASK:
                             int epicId = Integer.parseInt(line[8]);
-                            Subtask subtask = new Subtask(name, description, status, epicId);
+                            Subtask subtask = new Subtask(name, description, status, epicId, startTime, duration);
                             subtask.setId(id);
                             if (isDataBaseValue) {
                                 fileBackedTaskManager.subtaskPool.put(id, subtask);

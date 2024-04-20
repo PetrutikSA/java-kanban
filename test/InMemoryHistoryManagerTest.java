@@ -7,6 +7,8 @@ import tasks.Subtask;
 import tasks.Task;
 import tasks.enums.Status;
 
+import java.time.Duration;
+import java.time.LocalDateTime;
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -18,20 +20,20 @@ class InMemoryHistoryManagerTest {
     @BeforeEach
     void beforeEach() {
         taskManager = Managers.getDefault();
-        taskManager.createTask(new Task("Name", "Description", Status.NEW));
+        taskManager.createTask(new Task("Name", "Description", Status.NEW, LocalDateTime.of(2024, 7, 3, 15,15), Duration.ofDays(1)));
         taskManager.getTask(1);
     }
 
     @Test
     void getHistory() {
         List<Task> tasks = taskManager.getHistory();
-        assertNotNull(tasks, "История не возвращается из managers.history.HistoryManager");
+        assertNotNull(tasks, "История не возвращается из HistoryManager");
         assertEquals(1, tasks.size(), "Возвращается некорректный список истории просмотров задач");
     }
 
     @Test
     void addTaskToHistory() {
-        taskManager.createTask(new Task("Name2", "Description2", Status.NEW));
+        taskManager.createTask(new Task("Name2", "Description2", Status.NEW, LocalDateTime.of(2024, 4, 30, 0,15), Duration.ofDays(2)));
         assertEquals(1, taskManager.getHistory().size(), "Задача в историю добавляется при создании, а не просмотре");
         taskManager.getTask(2);
         assertEquals(2, taskManager.getHistory().size(), "Задача не добавлена в историю после просмотра");
@@ -40,7 +42,7 @@ class InMemoryHistoryManagerTest {
     @Test
     void correctSizeHistoryControl() {
         for (int i = 1; i <= 13; i++) {
-            taskManager.createTask(new Task("Name" + i, "Description" + i, Status.NEW));
+            taskManager.createTask(new Task("Name" + i, "Description" + i, Status.NEW, LocalDateTime.of(2024, 4, i, 0,15), Duration.ofDays(2)));
             taskManager.getTask(i + 1); //одна задача уже есть создана в BeforeEach
         }
 
@@ -60,7 +62,7 @@ class InMemoryHistoryManagerTest {
 
     @Test
     void historyManagerSaveTaskLastConditions() {
-        Task updateTask = new Task("Name", "Task done", Status.DONE);
+        Task updateTask = new Task("Name", "Task done", Status.DONE, LocalDateTime.of(2024, 4, 30, 0,15), Duration.ofDays(2));
         updateTask.setId(1);
         taskManager.updateTask(updateTask);
         taskManager.getTask(1);
@@ -74,8 +76,8 @@ class InMemoryHistoryManagerTest {
     void historyManagerClearWhenRemoveEpicPool() {
         Epic epic1 = new Epic("Epic1", "First epic to complete");
         Epic epic2 = new Epic("Epic2", "Second epic to complete");
-        Subtask subtask1 = new Subtask("Subtask1", "First Subtask to first epic", Status.NEW, 2);
-        Subtask subtask2 = new Subtask("Subtask2", "Second Subtask to first epic", Status.NEW, 3);
+        Subtask subtask1 = new Subtask("Subtask1", "First Subtask to first epic", Status.NEW, 2, LocalDateTime.of(2024, 4, 30, 0,15), Duration.ofDays(2));
+        Subtask subtask2 = new Subtask("Subtask2", "Second Subtask to first epic", Status.NEW, 3, LocalDateTime.of(2024, 5, 18, 9,15), Duration.ofDays(1));
         taskManager.createTask(epic1);
         taskManager.createTask(epic2);
         taskManager.createTask(subtask1);
