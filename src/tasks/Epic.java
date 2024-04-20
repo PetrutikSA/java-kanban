@@ -8,6 +8,8 @@ import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
+import static managers.tasks.FileBackedTaskManager.FORMATTER;
+
 public class Epic extends Task {
     private List<Integer> subTasksIds;
     private LocalDateTime endTime;
@@ -60,7 +62,7 @@ public class Epic extends Task {
             }
             subtasksToString = String.join("_", subtasksArray);
         }
-        return String.format("%s,%s", super.saveToString(), subtasksToString);
+        return String.format("%s,%s,%s", super.saveToString(), subtasksToString, endTime.format(FORMATTER));
     }
 
     @Override

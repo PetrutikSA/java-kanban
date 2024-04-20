@@ -11,6 +11,9 @@ import java.io.Writer;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.time.Duration;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.List;
 
 import tasks.enums.Status;
@@ -20,6 +23,7 @@ public class FileBackedTaskManager extends InMemoryTaskManager {
     private final String fileName;
     private final String currentDir;
     private final Path file;
+    public static final DateTimeFormatter FORMATTER = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss.SSS");
 
     public FileBackedTaskManager() { // значения по умолчанию
         fileName = "db.csv";
@@ -35,7 +39,7 @@ public class FileBackedTaskManager extends InMemoryTaskManager {
 
     private void save() {
         StringBuilder sb = new StringBuilder();
-        sb.append("DB/History,TaskType,Id,Name,Description,Status,Epic/Subtasks");
+        sb.append("DB/History,TaskType,Id,Name,Description,Status,StartTime,Duration,Epic/Subtasks,EpicEndTime");
         if (!taskPool.isEmpty()) {
             for (Integer key : taskPool.keySet()) {
                 sb.append(String.format("\nDB,%s", taskPool.get(key).saveToString()));
@@ -82,11 +86,13 @@ public class FileBackedTaskManager extends InMemoryTaskManager {
                     String name = line[3];
                     String description = line[4];
                     Status status = Status.valueOf(line[5]);
+                    LocalDateTime startTime = LocalDateTime.parse(line[6], FORMATTER);
+                    Duration duration = Duration.ofMinutes(Long.parseLong(line[7]));
                     if (fileBackedTaskManager.lastTaskId < id) fileBackedTaskManager.lastTaskId = id;
 
                     switch (taskType) {
                         case TASK:
-                            Task task = new Task(name, description, status);
+                            Task task = new Task(name, description, status, startTime, duration);
                             task.setId(id);
                             if (isDataBaseValue) {
                                 fileBackedTaskManager.taskPool.put(id, task);
@@ -98,12 +104,16 @@ public class FileBackedTaskManager extends InMemoryTaskManager {
                             Epic epic = new Epic(name, description);
                             epic.setId(id);
                             epic.setStatus(status);
-                            if (!line[6].isBlank()) {
+                            epic.setStartTime(startTime);
+                            epic.setDuration(duration);
+                            if (!line[8].isBlank()) {
                                 String[] subtasksId = line[6].split("_");
                                 for (String currentSubtaskId : subtasksId) {
                                     epic.addSubTasks(Integer.parseInt(currentSubtaskId));
                                 }
                             }
+                            LocalDateTime endTime = LocalDateTime.parse(line[9], FORMATTER);
+                            epic.setEndTime(endTime);
                             if (isDataBaseValue) {
                                 fileBackedTaskManager.epicPool.put(id, epic);
                             } else {
@@ -111,7 +121,7 @@ public class FileBackedTaskManager extends InMemoryTaskManager {
                             }
                             break;
                         case SUBTASK:
-                            int epicId = Integer.parseInt(line[6]);
+                            int epicId = Integer.parseInt(line[8]);
                             Subtask subtask = new Subtask(name, description, status, epicId);
                             subtask.setId(id);
                             if (isDataBaseValue) {

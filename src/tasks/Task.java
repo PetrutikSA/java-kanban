@@ -6,6 +6,8 @@ import tasks.enums.TaskTypes;
 import java.time.Duration;
 import java.time.LocalDateTime;
 
+import static managers.tasks.FileBackedTaskManager.FORMATTER;
+
 public class Task {
     protected int id;
     protected String name;
@@ -85,7 +87,8 @@ public class Task {
     }
 
     public String saveToString() {
-        return String.format("%s,%d,%s,%s,%s", taskType, id, name, description, status);
+        return String.format("%s,%d,%s,%s,%s,%s,%d", taskType, id, name, description, status
+                , startTime.format(FORMATTER), duration.toMinutes());
     }
 
     public LocalDateTime getEndTime() {
