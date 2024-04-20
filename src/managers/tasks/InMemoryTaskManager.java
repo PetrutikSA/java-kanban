@@ -8,6 +8,8 @@ import tasks.Subtask;
 import tasks.Task;
 import tasks.enums.TaskTypes;
 
+import java.time.Duration;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -123,6 +125,7 @@ public class InMemoryTaskManager implements TaskManager {
                     subtaskPool.put(lastTaskId, new Subtask(subtask));
                     connectedEpic.addSubTasks(lastTaskId);
                     epicStatusControl(connectedEpic);
+                    epicTimeControl(connectedEpic);
                     break;
             }
         }
@@ -149,6 +152,7 @@ public class InMemoryTaskManager implements TaskManager {
                         subtaskPool.put(taskId, new Subtask(subtask));
                         int connectedEpicId = subtask.getEpicId();
                         epicStatusControl(epicPool.get(connectedEpicId));
+                        epicTimeControl(epicPool.get(connectedEpicId));
                         break;
                 }
             }
@@ -178,6 +182,7 @@ public class InMemoryTaskManager implements TaskManager {
                     Epic connectedEpic = epicPool.get(subtask.getEpicId());
                     connectedEpic.getSubTasksIds().remove((Integer) id);
                     epicStatusControl(connectedEpic);
+                    epicTimeControl(connectedEpic);
                     break;
             }
         }
@@ -221,6 +226,25 @@ public class InMemoryTaskManager implements TaskManager {
                 epic.setStatus(Status.DONE);
             } else {
                 epic.setStatus(Status.IN_PROGRESS);
+            }
+        }
+    }
+
+    private void epicTimeControl(Epic epic) {
+        if (epic != null) {
+            List<Integer> subTasksId = epic.getSubTasksIds();
+            if (!subTasksId.isEmpty()) {
+                Subtask subtask = subtaskPool.get(subTasksId.get(0));
+                LocalDateTime startTime = subtask.getStartTime();
+                LocalDateTime endTime = subtask.getEndTime();
+                for (int i = 1; i < subTasksId.size(); i++) {
+                    subtask = subtaskPool.get(subTasksId.get(i));
+                    startTime = (startTime.isBefore(subtask.getStartTime())) ? startTime : subtask.getStartTime();
+                    endTime = (endTime.isAfter(subtask.getEndTime())) ? endTime : subtask.getEndTime();
+                }
+                epic.setStartTime(startTime);
+                epic.setEndTime(endTime);
+                epic.setDuration(Duration.between(startTime, endTime));
             }
         }
     }
