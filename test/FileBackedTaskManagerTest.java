@@ -253,7 +253,7 @@ class FileBackedTaskManagerTest {
     void testLoadFileException() {
         assertThrows(ManagerSaveException.class, () -> {
             String file = "Wrong path";
-            FileBackedTaskManager.load(Path.of(file).toFile());
+            FileBackedTaskManager.load(Paths.get(CURRENT_DIR, file).toFile());
         }, "Загрузка по некорректному пути должна приводить к ошибке");
     }
 }
