@@ -166,7 +166,7 @@ class InMemoryTaskManagerTest {
 
     @Test
     void dataInBaseCannotBeChangedWithoutUsingManager() {
-        Task task = new Task("Name", "Description", Status.NEW, LocalDateTime.of(2024, 7, 3, 15,15), Duration.ofDays(1));
+        Task task = new Task("Name", "Description", Status.NEW, LocalDateTime.of(2025, 10, 2, 0,0), Duration.ofDays(1));
         taskManager.createTask(task);
         task.setId(16);
         Task taskInManager = taskManager.getTask(16);

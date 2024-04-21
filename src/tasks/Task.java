@@ -112,4 +112,20 @@ public class Task {
     public void setStartTime(LocalDateTime startTime) {
         this.startTime = startTime;
     }
+
+    public boolean isTasksPeriodCrossing (Task task) {
+        if (id == task.getId()) {
+            return false; //задача не может пересекаться с самой сабой
+        }
+        LocalDateTime taskStartTime = task.getStartTime();
+        Duration taskDuration = task.getDuration();
+        if (taskStartTime != null && startTime != null && taskDuration != null && duration != null) {
+            LocalDateTime earliestStart = (startTime.isBefore(taskStartTime)) ? startTime: taskStartTime;
+            LocalDateTime taskEndTime = task.getEndTime();
+            LocalDateTime latestEnd = (getEndTime().isAfter(taskEndTime)) ? getEndTime() : taskEndTime;
+            return Duration.between(earliestStart, latestEnd).compareTo(duration.plus(taskDuration)) < 0;
+        } else {
+            return false;
+        }
+    }
 }

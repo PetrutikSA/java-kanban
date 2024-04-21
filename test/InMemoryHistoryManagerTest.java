@@ -42,7 +42,7 @@ class InMemoryHistoryManagerTest {
     @Test
     void correctSizeHistoryControl() {
         for (int i = 1; i <= 13; i++) {
-            taskManager.createTask(new Task("Name" + i, "Description" + i, Status.NEW, LocalDateTime.of(2024, 4, i, 0,15), Duration.ofDays(2)));
+            taskManager.createTask(new Task("Name" + i, "Description" + i, Status.NEW, LocalDateTime.of(2024, 4, i, 0,15), Duration.ofDays(1)));
             taskManager.getTask(i + 1); //одна задача уже есть создана в BeforeEach
         }
 
