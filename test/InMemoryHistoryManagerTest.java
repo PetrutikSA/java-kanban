@@ -11,8 +11,7 @@ import java.time.Duration;
 import java.time.LocalDateTime;
 import java.util.List;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.*;
 
 class InMemoryHistoryManagerTest {
     private TaskManager taskManager;
@@ -29,6 +28,9 @@ class InMemoryHistoryManagerTest {
         List<Task> tasks = taskManager.getHistory();
         assertNotNull(tasks, "История не возвращается из HistoryManager");
         assertEquals(1, tasks.size(), "Возвращается некорректный список истории просмотров задач");
+        taskManager.removeTask(1);
+        tasks = taskManager.getHistory();
+        assertTrue(tasks.isEmpty(), "Возвращается некорректный список истории просмотров задач");
     }
 
     @Test

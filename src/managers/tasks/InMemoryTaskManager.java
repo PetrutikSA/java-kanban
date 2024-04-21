@@ -191,7 +191,7 @@ public class InMemoryTaskManager implements TaskManager {
                     Epic epic = epicPool.remove(id);
                     epic.getSubTasksIds().stream()
                             .map(subtaskPool::remove)
-                            .forEach(oldSubTaskInDBConnectedToEpic -> prioritizedTasks.remove(oldSubTaskInDBConnectedToEpic));
+                            .forEach(connectedSubtaskInDB -> prioritizedTasks.remove(connectedSubtaskInDB));
                     break;
                 case SUBTASK:
                     // Удаляется подзадача из пулла, из эпика, проверяется статус эпика
@@ -261,7 +261,8 @@ public class InMemoryTaskManager implements TaskManager {
                 }
                 epic.setStartTime(startTime);
                 epic.setEndTime(endTime);
-                epic.setDuration(Duration.between(startTime, endTime));
+                Duration duration = (startTime != null && endTime != null) ? Duration.between(startTime, endTime) : null;
+                epic.setDuration(duration);
             } else {
                 epic.setStartTime(null);
                 epic.setDuration(null);
@@ -275,7 +276,7 @@ public class InMemoryTaskManager implements TaskManager {
         return new ArrayList<>(prioritizedTasks);
     }
 
-    private void checkAndPutInPrioritizedTasks(Task task) {
+    protected void checkAndPutInPrioritizedTasks(Task task) {
         if (task != null) {
             if (task.getStartTime() != null && task.getDuration() != null) {
                 prioritizedTasks.add(task);

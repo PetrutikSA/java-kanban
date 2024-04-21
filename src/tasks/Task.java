@@ -24,7 +24,7 @@ public class Task {
         taskType = TaskTypes.TASK;
     }
 
-    public Task (String name, String description, Status status, LocalDateTime startTime, Duration duration) {
+    public Task(String name, String description, Status status, LocalDateTime startTime, Duration duration) {
         this(name, description, status);
         this.startTime = startTime;
         this.duration = duration;
@@ -89,12 +89,12 @@ public class Task {
     public String saveToString() {
         String startTimeToString = (startTime == null) ? " " : startTime.format(FORMATTER);
         String durationToString = (duration == null) ? " " : String.valueOf(duration.toMinutes());
-        return String.format("%s,%d,%s,%s,%s,%s,%s", taskType, id, name, description, status
-                , startTimeToString, durationToString);
+        return String.format("%s,%d,%s,%s,%s,%s,%s", taskType, id, name, description, status,
+                startTimeToString, durationToString);
     }
 
     public LocalDateTime getEndTime() {
-        return startTime.plus(duration);
+        return (startTime != null) ? startTime.plus(duration) : null;
     }
 
     public Duration getDuration() {
@@ -113,14 +113,14 @@ public class Task {
         this.startTime = startTime;
     }
 
-    public boolean isTasksPeriodCrossing (Task task) {
+    public boolean isTasksPeriodCrossing(Task task) {
         if (id == task.getId()) {
             return false; //задача не может пересекаться с самой сабой
         }
         LocalDateTime taskStartTime = task.getStartTime();
         Duration taskDuration = task.getDuration();
         if (taskStartTime != null && startTime != null && taskDuration != null && duration != null) {
-            LocalDateTime earliestStart = (startTime.isBefore(taskStartTime)) ? startTime: taskStartTime;
+            LocalDateTime earliestStart = (startTime.isBefore(taskStartTime)) ? startTime : taskStartTime;
             LocalDateTime taskEndTime = task.getEndTime();
             LocalDateTime latestEnd = (getEndTime().isAfter(taskEndTime)) ? getEndTime() : taskEndTime;
             return Duration.between(earliestStart, latestEnd).compareTo(duration.plus(taskDuration)) < 0;
