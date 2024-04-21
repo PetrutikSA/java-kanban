@@ -14,6 +14,7 @@ import java.nio.file.Paths;
 import java.time.Duration;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
+import java.util.Arrays;
 import java.util.List;
 
 import tasks.enums.Status;
@@ -41,25 +42,25 @@ public class FileBackedTaskManager extends InMemoryTaskManager {
         StringBuilder sb = new StringBuilder();
         sb.append("DB/History,TaskType,Id,Name,Description,Status,StartTime,Duration,Epic/Subtasks,EpicEndTime");
         if (!taskPool.isEmpty()) {
-            for (Integer key : taskPool.keySet()) {
-                sb.append(String.format("\nDB,%s", taskPool.get(key).saveToString()));
-            }
+            taskPool.values().stream()
+                    .map(task -> String.format("\nDB,%s", task.saveToString()))
+                    .forEach(sb::append);
         }
         if (!epicPool.isEmpty()) {
-            for (Integer key : epicPool.keySet()) {
-                sb.append(String.format("\nDB,%s", epicPool.get(key).saveToString()));
-            }
+            epicPool.values().stream()
+                    .map(epic -> String.format("\nDB,%s", epic.saveToString()))
+                    .forEach(sb::append);
         }
         if (!subtaskPool.isEmpty()) {
-            for (Integer key : subtaskPool.keySet()) {
-                sb.append(String.format("\nDB,%s", subtaskPool.get(key).saveToString()));
-            }
+            subtaskPool.values().stream()
+                    .map(subtask -> String.format("\nDB,%s", subtask.saveToString()))
+                    .forEach(sb::append);
         }
         List<Task> history = getHistory();
         if (!history.isEmpty()) {
-            for (Task task : history) {
-                sb.append(String.format("\nHistory,%s", task.saveToString()));
-            }
+            history.stream()
+                    .map(task -> String.format("\nHistory,%s", task.saveToString()))
+                    .forEach(sb::append);
         }
 
         try (Writer fileWriter = new FileWriter(file.toFile())) {
@@ -109,9 +110,9 @@ public class FileBackedTaskManager extends InMemoryTaskManager {
                             if (duration != null) epic.setDuration(duration);
                             if (!line[8].isBlank()) {
                                 String[] subtasksId = line[8].split("_");
-                                for (String currentSubtaskId : subtasksId) {
-                                    epic.addSubTasks(Integer.parseInt(currentSubtaskId));
-                                }
+                                Arrays.stream(subtasksId)
+                                        .mapToInt(Integer::parseInt)
+                                        .forEach(epic::addSubTasks);
                             }
                             LocalDateTime endTime = (line[9].isBlank()) ? null : LocalDateTime.parse(line[9], FORMATTER);
                             epic.setEndTime(endTime);
