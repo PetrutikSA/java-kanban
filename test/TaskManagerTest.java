@@ -8,6 +8,7 @@ import tasks.enums.Status;
 
 import java.time.Duration;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -18,6 +19,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 abstract class TaskManagerTest<T extends TaskManager> {
     protected T taskManager;
+    protected TestObjects testObjects;
 
     protected final String taskInDBNotEqualToCreated = "Созданная и полученная задача не совпадает";
     protected final String taskPoolSizeError = "Некорректный размер пулла задач";
@@ -44,32 +46,25 @@ abstract class TaskManagerTest<T extends TaskManager> {
     }
 
     void addTasks() {
-        taskManager.createTask(new Task("Task1", "First task to complete", Status.NEW,
-                LocalDateTime.of(2024, 5, 12, 18, 30), Duration.ofDays(2)));
-        taskManager.createTask(new Task("Task2", "Second task to complete", Status.NEW,
-                LocalDateTime.of(2024, 4, 30, 12, 0), Duration.ofHours(3)));
-        taskManager.createTask(new Task("Task3", "Third task to complete", Status.NEW,
-                LocalDateTime.of(2024, 4, 29, 21, 0), Duration.ofMinutes(30)));
-        taskManager.createTask(new Epic("Epic1", "First epic to complete"));
-        taskManager.createTask(new Epic("Epic2", "Second epic to complete"));
-        taskManager.createTask(new Subtask("Subtask1", "First Subtask to first epic", Status.NEW,
-                4, LocalDateTime.of(2024, 4, 28, 9, 0), Duration.ofHours(8)));
-        taskManager.createTask(new Subtask("Subtask2", "Second Subtask to first epic", Status.NEW,
-                4, LocalDateTime.of(2024, 5, 15, 10, 30), Duration.ofMinutes(25)));
-        taskManager.createTask(new Subtask("Subtask3", "Third Subtask to first epic", Status.NEW,
-                4, LocalDateTime.of(2024, 6, 1, 9, 30), Duration.ofDays(4)));
-        taskManager.createTask(new Subtask("Subtask4", "First Subtask to second epic", Status.NEW,
-                5, LocalDateTime.of(2024, 7, 3, 15, 15), Duration.ofDays(1)));
+        testObjects = new TestObjects();
+        taskManager.createTask(testObjects.task1);
+        taskManager.createTask(testObjects.task2);
+        taskManager.createTask(testObjects.task3);
+        taskManager.createTask(testObjects.epic1);
+        taskManager.createTask(testObjects.epic2);
+        taskManager.createTask(testObjects.subtask1);
+        taskManager.createTask(testObjects.subtask2);
+        taskManager.createTask(testObjects.subtask3);
+        taskManager.createTask(testObjects.subtask4);
     }
+
     @Test
     void getSameTaskByIdAsWasCreated() {
-        assertEquals("Task{id='2, 'name='Task2', description='Second task to complete', status=NEW'}",
+        assertEquals(testObjects.task2.toString(),
                 taskManager.getTask(2).toString(), taskInDBNotEqualToCreated);
-        assertEquals("Epic{id='5, 'name='Epic2', description='Second epic to complete', status=NEW, "
-                        + "subtasksNumber='1'}", taskManager.getTask(5).toString(),
+        assertEquals(testObjects.epic2.toString(), taskManager.getTask(5).toString(),
                 taskInDBNotEqualToCreated);
-        assertEquals("Subtask{id='9, 'name='Subtask4', description='First Subtask to second epic', "
-                        + "status=NEW, epicID='5'}", taskManager.getTask(9).toString(),
+        assertEquals(testObjects.subtask4.toString(), taskManager.getTask(9).toString(),
                 taskInDBNotEqualToCreated);
     }
 
@@ -146,18 +141,17 @@ abstract class TaskManagerTest<T extends TaskManager> {
 
     @Test
     void correctUpdateTask() {
-        Task newTask = new Task("Task2", "Second task updated Status", Status.DONE,
-                LocalDateTime.of(2024, 4, 30, 12, 0), Duration.ofHours(3));
+        Task newTask = new Task(testObjects.task2);
         newTask.setId(2);
+        newTask.setStatus(Status.DONE);
         taskManager.updateTask(newTask);
         correctFormingPoolsOfTasks();
-        assertEquals("Task{id='2, 'name='Task2', description='Second task updated Status', status=DONE'}",
-                taskManager.getTask(2).toString(), incorrectUpdating);
+        assertEquals(newTask.toString(), taskManager.getTask(2).toString(), incorrectUpdating);
     }
 
     @Test
     void correctUpdateEpic() {
-        Epic newEpic = new Epic("Epic2", "Second epic updated");
+        Epic newEpic = new Epic(testObjects.epic2);
         newEpic.setId(5);
         newEpic.addSubTasks(9);
         newEpic.setStartTime(LocalDateTime.of(2024, 7, 3, 15, 15));
@@ -165,28 +159,22 @@ abstract class TaskManagerTest<T extends TaskManager> {
         newEpic.setDuration(Duration.ofDays(1));
         taskManager.updateTask(newEpic);
         correctFormingPoolsOfTasks();
-        assertEquals("Epic{id='5, 'name='Epic2', description='Second epic updated', status=NEW, " +
-                "subtasksNumber='1'}", taskManager.getTask(5).toString(), incorrectUpdating);
+        assertEquals(newEpic.toString(), taskManager.getTask(5).toString(), incorrectUpdating);
     }
 
     @Test
     void correctUpdateSubtaskAndConnectedEpicStatus() {
-        Subtask newSubtask3 = new Subtask("Subtask3", "Third Subtask status change", Status.IN_PROGRESS,
-                4, LocalDateTime.of(2024, 6, 1, 9, 30), Duration.ofDays(4));
-        Subtask newSubtask4 = new Subtask("Subtask4", "First Subtask to second epic status change",
-                Status.DONE, 5, LocalDateTime.of(2024, 7, 3, 15, 15),
-                Duration.ofDays(1));
+        Subtask newSubtask3 = new Subtask(testObjects.subtask3);
+        Subtask newSubtask4 = new Subtask(testObjects.subtask4);
         newSubtask3.setId(8);
+        newSubtask3.setStatus(Status.IN_PROGRESS);
         newSubtask4.setId(9);
+        newSubtask4.setStatus(Status.DONE);
         taskManager.updateTask(newSubtask3);
         taskManager.updateTask(newSubtask4);
         correctFormingPoolsOfTasks();
-        assertEquals("Subtask{id='8, 'name='Subtask3', description='Third Subtask status change', " +
-                        "status=IN_PROGRESS, epicID='4'}",
-                taskManager.getTask(8).toString(), incorrectUpdating);
-        assertEquals("Subtask{id='9, 'name='Subtask4', description='First Subtask to second epic status " +
-                        "change', status=DONE, epicID='5'}",
-                taskManager.getTask(9).toString(), incorrectUpdating);
+        assertEquals(newSubtask3.toString(), taskManager.getTask(8).toString(), incorrectUpdating);
+        assertEquals(newSubtask4.toString(), taskManager.getTask(9).toString(), incorrectUpdating);
         assertEquals(Status.IN_PROGRESS, taskManager.getTask(4).getStatus(), epicStatusError);
         assertEquals(Status.DONE, taskManager.getTask(5).getStatus(), epicStatusError);
     }
@@ -229,8 +217,7 @@ abstract class TaskManagerTest<T extends TaskManager> {
         updatedSubtask.setId(7);
         boolean isTaskUpdated = taskManager.updateTask(updatedSubtask);
         assertFalse(isTaskUpdated, ifDBWasNotUpdatedShouldReturnFalse);
-        assertEquals("Subtask{id='7, 'name='Subtask2', description='Second Subtask to first epic', "
-                        + "status=NEW, epicID='4'}", taskManager.getTask(7).toString(),
+        assertEquals(testObjects.subtask2.toString(), taskManager.getTask(7).toString(),
                 crossingTaskPeriodError);
     }
 
@@ -273,10 +260,13 @@ abstract class TaskManagerTest<T extends TaskManager> {
 
     @Test
     void correctPrioritizedTaskListFormingWhileUpdating() {
-        Task task2updated = new Task("Task2", "Second task to complete", Status.NEW
-                , LocalDateTime.of(2024, 4, 20, 0, 0), Duration.ofHours(1));
+        Task task2updated = new Task(testObjects.task2);
+        task2updated.setStartTime(LocalDateTime.of(2024, 4, 20, 0, 0));
+        task2updated.setDuration(Duration.ofHours(1));
         task2updated.setId(2);
-        Subtask subtask4updated = new Subtask("Subtask4", "First Subtask to second epic", Status.NEW, 5);
+        Subtask subtask4updated = new Subtask(testObjects.subtask4);
+        subtask4updated.setStartTime(null);
+        subtask4updated.setDuration(null);
         subtask4updated.setId(9);
         taskManager.updateTask(task2updated);
         taskManager.updateTask(subtask4updated);
@@ -322,7 +312,7 @@ abstract class TaskManagerTest<T extends TaskManager> {
     @Test
     void addTaskToHistory() {
         taskManager.getTask(1);
-        taskManager.createTask(new Task("Name2", "Description2", Status.NEW, LocalDateTime.of(2024, 4, 30, 0,15), Duration.ofDays(2)));
+        taskManager.createTask(new Task("Name2", "Description2", Status.NEW, LocalDateTime.of(2024, 4, 30, 0, 15), Duration.ofDays(2)));
         assertEquals(1, taskManager.getHistory().size(), "Задача в историю добавляется при создании, а не просмотре");
         taskManager.getTask(2);
         assertEquals(2, taskManager.getHistory().size(), "Задача не добавлена в историю после просмотра");
@@ -332,7 +322,7 @@ abstract class TaskManagerTest<T extends TaskManager> {
     void correctSizeHistoryControl() {
         taskManager.getTask(1);
         for (int i = 1; i <= 13; i++) {
-            taskManager.createTask(new Task("Name" + i, "Description" + i, Status.NEW, LocalDateTime.of(2024, 4, i, 0,15), Duration.ofDays(1)));
+            taskManager.createTask(new Task("Name" + i, "Description" + i, Status.NEW, LocalDateTime.of(2024, 4, i, 0, 15), Duration.ofDays(1)));
             taskManager.getTask(i + 9); //девять уже есть в BeforeEach
         }
 
@@ -352,14 +342,13 @@ abstract class TaskManagerTest<T extends TaskManager> {
 
     @Test
     void historyManagerSaveTaskLastConditions() {
-        Task updateTask = new Task("Name", "Task done", Status.DONE, LocalDateTime.of(2024, 4, 30, 0,15), Duration.ofDays(2));
+        Task updateTask = new Task("Name", "Task done", Status.DONE);
         updateTask.setId(1);
         taskManager.updateTask(updateTask);
         taskManager.getTask(1);
         List<Task> tasks = taskManager.getHistory();
         assertEquals(1, tasks.size(), historySizeError);
-        assertEquals("Task{id='1, 'name='Task1', description='First task to complete', status=NEW'}",
-                tasks.get(0).toString(), "Вторая версия задачи не корректно сохранена");
+        assertEquals(updateTask.toString(), tasks.get(0).toString(), "Вторая версия задачи не корректно сохранена");
     }
 
     @Test
@@ -372,5 +361,54 @@ abstract class TaskManagerTest<T extends TaskManager> {
         taskManager.removeEpicPool();
         history = taskManager.getHistory();
         assertEquals(0, history.size(), historySizeError);
+    }
+
+
+    @Test
+    void epicStatusCheckWhenAllSubtasksNew() {
+        Epic epic = (Epic) taskManager.getTask(4);
+        assertEquals(Status.NEW, epic.getStatus(), epicStatusError);
+    }
+
+    @Test
+    void epicStatusCheckWhenAllSubtasksDone() {
+        List<Subtask> updatesSubtasks = new ArrayList<>();
+        updatesSubtasks.add(new Subtask(testObjects.subtask1));
+        updatesSubtasks.add(new Subtask(testObjects.subtask2));
+        updatesSubtasks.add(new Subtask(testObjects.subtask3));
+        for (int i = 0; i < 3; i++) {
+            Subtask subtask = updatesSubtasks.get(i);
+            subtask.setId(i + 6);
+            subtask.setStatus(Status.DONE);
+            taskManager.updateTask(subtask);
+        }
+        Epic epic = (Epic) taskManager.getTask(4);
+        assertEquals(Status.DONE, epic.getStatus(), epicStatusError);
+    }
+
+    @Test
+    void epicStatusCheckWhenSubtasksNewAndDone() {
+        Subtask subtask = new Subtask(testObjects.subtask1);
+        subtask.setId(6);
+        subtask.setStatus(Status.DONE);
+        taskManager.updateTask(subtask);
+        Epic epic = (Epic) taskManager.getTask(4);
+        assertEquals(Status.IN_PROGRESS, epic.getStatus(), epicStatusError);
+    }
+
+    @Test
+    void epicStatusCheckWhenSubtasksInProgress() {
+        List<Subtask> updatesSubtasks = new ArrayList<>();
+        updatesSubtasks.add(new Subtask(testObjects.subtask1));
+        updatesSubtasks.add(new Subtask(testObjects.subtask2));
+        updatesSubtasks.add(new Subtask(testObjects.subtask3));
+        for (int i = 0; i < 3; i++) {
+            Subtask subtask = updatesSubtasks.get(i);
+            subtask.setId(i + 6);
+            subtask.setStatus(Status.IN_PROGRESS);
+            taskManager.updateTask(subtask);
+        }
+        Epic epic = (Epic) taskManager.getTask(4);
+        assertEquals(Status.IN_PROGRESS, epic.getStatus(), epicStatusError);
     }
 }

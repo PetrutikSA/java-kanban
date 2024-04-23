@@ -101,7 +101,7 @@ class FileBackedTaskManagerTest extends TaskManagerTest<FileBackedTaskManager> {
         taskManager = FileBackedTaskManager.load(testDB.toFile());
         taskManager.removeEpicPool();
         taskManager = FileBackedTaskManager.load(testDB.toFile());
-        assertTrue(taskManager.getEpicsList().isEmpty(),epicPoolSizeError);
+        assertTrue(taskManager.getEpicsList().isEmpty(), epicPoolSizeError);
         assertTrue(taskManager.getSubtasksList().isEmpty(), subtaskPoolSizeError);
     }
 
@@ -127,11 +127,11 @@ class FileBackedTaskManagerTest extends TaskManagerTest<FileBackedTaskManager> {
         assertNotNull(history, historyReturnNull);
         assertEquals(3, history.size(), historySizeError);
         assertEquals("Subtask{id='6, 'name='Subtask3', description='First subtask to second epic', "
-                        + "status=NEW, epicID='3'}", history.get(0).toString(), historyOrderError);
+                + "status=NEW, epicID='3'}", history.get(0).toString(), historyOrderError);
         assertEquals("Task{id='1, 'name='Task1', description='First task to complete', status=NEW'}",
                 history.get(1).toString(), historyOrderError);
         assertEquals("Epic{id='3, 'name='Epic2', description='Second epic to complete', status=NEW, "
-                        + "subtasksNumber='1'}", history.get(2).toString(), historyOrderError);
+                + "subtasksNumber='1'}", history.get(2).toString(), historyOrderError);
     }
 
     @Test
@@ -166,9 +166,9 @@ class FileBackedTaskManagerTest extends TaskManagerTest<FileBackedTaskManager> {
         taskManager.updateTask(newSubtask);
         taskManager = FileBackedTaskManager.load(testDB.toFile());
         assertEquals("Epic{id='2, 'name='Epic1', description='First epic to complete', status=IN_PROGRESS, "
-                        + "subtasksNumber='2'}", taskManager.getTask(2).toString(), epicStatusError);
+                + "subtasksNumber='2'}", taskManager.getTask(2).toString(), epicStatusError);
         assertEquals("Subtask{id='5, 'name='Subtask2', description='Second subtask to first epic updated', "
-                        + "status=DONE, epicID='2'}", taskManager.getTask(5).toString(), incorrectUpdating);
+                + "status=DONE, epicID='2'}", taskManager.getTask(5).toString(), incorrectUpdating);
     }
 
     @Test
