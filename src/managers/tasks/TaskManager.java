@@ -21,13 +21,15 @@ public interface TaskManager {
 
     Task getTask(int id);
 
-    void createTask(Task task);
+    boolean createTask(Task task);
 
-    void updateTask(Task task);
+    boolean updateTask(Task task);
 
     void removeTask(int id);
 
     List<Subtask> getEpicSubtasksList(int id);
 
     List<Task> getHistory();
+
+    List<Task> getPrioritizedTasks();
 }

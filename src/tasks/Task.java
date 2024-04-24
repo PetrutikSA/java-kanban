@@ -3,12 +3,19 @@ package tasks;
 import tasks.enums.Status;
 import tasks.enums.TaskTypes;
 
+import java.time.Duration;
+import java.time.LocalDateTime;
+
+import static managers.tasks.FileBackedTaskManager.FORMATTER;
+
 public class Task {
     protected int id;
     protected String name;
     protected String description;
     protected Status status;
     protected TaskTypes taskType;
+    protected Duration duration;
+    protected LocalDateTime startTime;
 
     public Task(String name, String description, Status status) {
         this.name = name;
@@ -17,12 +24,20 @@ public class Task {
         taskType = TaskTypes.TASK;
     }
 
+    public Task(String name, String description, Status status, LocalDateTime startTime, Duration duration) {
+        this(name, description, status);
+        this.startTime = startTime;
+        this.duration = duration;
+    }
+
     public Task(Task task) {
         this.id = task.getId();
         this.name = task.getName();
         this.description = task.getDescription();
         this.status = task.getStatus();
-        taskType = TaskTypes.TASK;
+        this.taskType = TaskTypes.TASK;
+        this.duration = task.duration;
+        this.startTime = task.startTime;
     }
 
     @Override
@@ -72,6 +87,45 @@ public class Task {
     }
 
     public String saveToString() {
-        return String.format("%s,%d,%s,%s,%s", taskType, id, name, description, status);
+        String startTimeToString = (startTime == null) ? " " : startTime.format(FORMATTER);
+        String durationToString = (duration == null) ? " " : String.valueOf(duration.toMinutes());
+        return String.format("%s,%d,%s,%s,%s,%s,%s", taskType, id, name, description, status,
+                startTimeToString, durationToString);
+    }
+
+    public LocalDateTime getEndTime() {
+        return (startTime != null) ? startTime.plus(duration) : null;
+    }
+
+    public Duration getDuration() {
+        return duration;
+    }
+
+    public LocalDateTime getStartTime() {
+        return startTime;
+    }
+
+    public void setDuration(Duration duration) {
+        this.duration = duration;
+    }
+
+    public void setStartTime(LocalDateTime startTime) {
+        this.startTime = startTime;
+    }
+
+    public boolean isTasksPeriodCrossing(Task task) {
+        if (id == task.getId()) {
+            return false; //задача не может пересекаться с самой сабой
+        }
+        LocalDateTime taskStartTime = task.getStartTime();
+        Duration taskDuration = task.getDuration();
+        if (taskStartTime != null && startTime != null && taskDuration != null && duration != null) {
+            LocalDateTime earliestStart = (startTime.isBefore(taskStartTime)) ? startTime : taskStartTime;
+            LocalDateTime taskEndTime = task.getEndTime();
+            LocalDateTime latestEnd = (getEndTime().isAfter(taskEndTime)) ? getEndTime() : taskEndTime;
+            return Duration.between(earliestStart, latestEnd).compareTo(duration.plus(taskDuration)) < 0;
+        } else {
+            return false;
+        }
     }
 }

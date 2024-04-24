@@ -8,10 +8,10 @@ import tasks.Subtask;
 import tasks.Task;
 import tasks.enums.TaskTypes;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.time.Duration;
+import java.time.LocalDateTime;
+import java.util.*;
+import java.util.stream.Collectors;
 
 public class InMemoryTaskManager implements TaskManager {
     protected final Map<Integer, Task> taskPool = new HashMap<>();
@@ -19,65 +19,57 @@ public class InMemoryTaskManager implements TaskManager {
     protected final Map<Integer, Epic> epicPool = new HashMap<>();
     protected int lastTaskId = 0;
     protected final HistoryManager historyManager = Managers.getDefaultHistory();
+    protected TreeSet<Task> prioritizedTasks = new TreeSet<>(Comparator.comparing(Task::getStartTime));
 
     @Override
     public List<Task> getTasksList() {
-        ArrayList<Task> tasksList = new ArrayList<>();
-        for (Map.Entry<Integer, Task> pair : taskPool.entrySet()) {
-            tasksList.add(pair.getValue());
-        }
-        return tasksList;
+        return new ArrayList<>(taskPool.values());
     }
 
     @Override
     public List<Epic> getEpicsList() {
-        ArrayList<Epic> epicsList = new ArrayList<>();
-        for (Map.Entry<Integer, Epic> pair : epicPool.entrySet()) {
-            epicsList.add(pair.getValue());
-        }
-        return epicsList;
+        return new ArrayList<>(epicPool.values());
     }
 
     @Override
     public List<Subtask> getSubtasksList() {
-        ArrayList<Subtask> subtasksList = new ArrayList<>();
-        for (Map.Entry<Integer, Subtask> pair : subtaskPool.entrySet()) {
-            subtasksList.add(pair.getValue());
-        }
-        return subtasksList;
+        return new ArrayList<>(subtaskPool.values());
     }
 
     @Override
     public void removeTaskPool() {
         clearHistoryWhenRemovingPool(taskPool);
+        taskPool.values()
+                .forEach(task -> prioritizedTasks.remove(task));
         taskPool.clear();
     }
 
     @Override
     public void removeEpicPool() {
         clearHistoryWhenRemovingPool(epicPool);
-        clearHistoryWhenRemovingPool(subtaskPool);
         epicPool.clear();
-        subtaskPool.clear();
+        removeSubtaskPool();
     }
 
     @Override
     public void removeSubtaskPool() {
         clearHistoryWhenRemovingPool(subtaskPool);
+        subtaskPool.values()
+                .forEach(subtask -> prioritizedTasks.remove(subtask));
         subtaskPool.clear();
         //Пересмотр статуса эпиков согласно логике программы
-        for (Integer id : epicPool.keySet()) {
-            Epic epic = epicPool.get(id);
-            epic.getSubTasksIds().clear();
-            epicStatusControl(epic);
-        }
+        epicPool.values()
+                .forEach(epic -> {
+                    epic.getSubTasksIds().clear();
+                    epicStatusControl(epic);
+                    epicTimeControl(epic);
+                });
     }
 
     private void clearHistoryWhenRemovingPool(Map<Integer, ? extends Task> pool) {
         if (!pool.isEmpty()) {
-            for (int id : pool.keySet()) {
-                historyManager.remove(id);
-            }
+            pool.keySet()
+                    .forEach(historyManager::remove);
         }
     }
 
@@ -103,33 +95,45 @@ public class InMemoryTaskManager implements TaskManager {
     }
 
     @Override
-    public void createTask(Task task) {
+    public boolean createTask(Task task) {
         if (task != null) {
             lastTaskId++;
             task.setId(lastTaskId);
             TaskTypes taskType = task.getTaskType();
             switch (taskType) {
                 case TASK:
-                    taskPool.put(lastTaskId, new Task(task));
-                    break;
+                    Task taskToDB = new Task(task);
+                    if (!isTaskCrossingWithPrioritized(taskToDB)) {
+                        taskPool.put(lastTaskId, taskToDB);
+                        checkAndPutInPrioritizedTasks(taskToDB);
+                        return true;
+                    }
+                    return false;
                 case EPIC:
                     Epic epic = (Epic) task;
                     epicPool.put(lastTaskId, new Epic(epic));
-                    break;
+                    return true;
                 case SUBTASK:
                     Subtask subtask = (Subtask) task;
                     int connectedEpicId = subtask.getEpicId();
                     Epic connectedEpic = epicPool.get(connectedEpicId);
-                    subtaskPool.put(lastTaskId, new Subtask(subtask));
-                    connectedEpic.addSubTasks(lastTaskId);
-                    epicStatusControl(connectedEpic);
-                    break;
+                    Subtask subtaskToDB = new Subtask(subtask);
+                    if (!isTaskCrossingWithPrioritized(subtaskToDB)) {
+                        subtaskPool.put(lastTaskId, subtaskToDB);
+                        checkAndPutInPrioritizedTasks(subtaskToDB);
+                        connectedEpic.addSubTasks(lastTaskId);
+                        epicStatusControl(connectedEpic);
+                        epicTimeControl(connectedEpic);
+                        return true;
+                    }
+                    return false;
             }
         }
+        return false;
     }
 
     @Override
-    public void updateTask(Task task) {
+    public boolean updateTask(Task task) {
         if (task != null) {
             int taskId = task.getId();
             TaskTypes taskType = task.getTaskType();
@@ -138,21 +142,37 @@ public class InMemoryTaskManager implements TaskManager {
             if (oldTask != null && taskType.equals(oldTask.getTaskType())) {
                 switch (taskType) {
                     case TASK:
-                        taskPool.put(taskId, new Task(task));
-                        break;
+                        Task oldTaskInDB = taskPool.get(taskId);
+                        Task newTaskToDB = new Task(task);
+                        if (!isTaskCrossingWithPrioritized(newTaskToDB)) {
+                            taskPool.put(taskId, newTaskToDB);
+                            prioritizedTasks.remove(oldTaskInDB);
+                            checkAndPutInPrioritizedTasks(newTaskToDB);
+                            return true;
+                        }
+                        return false;
                     case EPIC:
                         Epic epic = (Epic) task;
                         epicPool.put(taskId, new Epic(epic));
-                        break;
+                        return true;
                     case SUBTASK:
                         Subtask subtask = (Subtask) task;
-                        subtaskPool.put(taskId, new Subtask(subtask));
-                        int connectedEpicId = subtask.getEpicId();
-                        epicStatusControl(epicPool.get(connectedEpicId));
-                        break;
+                        Subtask oldSubtaskFromDB = subtaskPool.get(taskId);
+                        Subtask newSubtaskToDB = new Subtask(subtask);
+                        if (!isTaskCrossingWithPrioritized(newSubtaskToDB)) {
+                            subtaskPool.put(taskId, newSubtaskToDB);
+                            prioritizedTasks.remove(oldSubtaskFromDB);
+                            checkAndPutInPrioritizedTasks(newSubtaskToDB);
+                            int connectedEpicId = subtask.getEpicId();
+                            epicStatusControl(epicPool.get(connectedEpicId));
+                            epicTimeControl(epicPool.get(connectedEpicId));
+                            return true;
+                        }
+                        return false;
                 }
             }
         }
+        return false;
     }
 
     @Override
@@ -163,21 +183,24 @@ public class InMemoryTaskManager implements TaskManager {
             TaskTypes taskType = task.getTaskType();
             switch (taskType) {
                 case TASK:
-                    taskPool.remove(id);
+                    Task oldTaskFromDB = taskPool.remove(id);
+                    prioritizedTasks.remove(oldTaskFromDB);
                     break;
                 case EPIC:
                     // Удаляются эпик из пулла, удаляются все связанные подзадачи
                     Epic epic = epicPool.remove(id);
-                    for (Integer subtaskId : epic.getSubTasksIds()) {
-                        subtaskPool.remove(subtaskId);
-                    }
+                    epic.getSubTasksIds().stream()
+                            .map(subtaskPool::remove)
+                            .forEach(connectedSubtaskInDB -> prioritizedTasks.remove(connectedSubtaskInDB));
                     break;
                 case SUBTASK:
                     // Удаляется подзадача из пулла, из эпика, проверяется статус эпика
                     Subtask subtask = subtaskPool.remove(id);
+                    prioritizedTasks.remove(subtask);
                     Epic connectedEpic = epicPool.get(subtask.getEpicId());
                     connectedEpic.getSubTasksIds().remove((Integer) id);
                     epicStatusControl(connectedEpic);
+                    epicTimeControl(connectedEpic);
                     break;
             }
         }
@@ -188,10 +211,9 @@ public class InMemoryTaskManager implements TaskManager {
         ArrayList<Subtask> subtasks = new ArrayList<>();
         if (epicPool.containsKey(id)) {
             Epic epic = epicPool.get(id);
-            for (Integer subtaskId : epic.getSubTasksIds()) {
-                Subtask subtask = subtaskPool.get(subtaskId);
-                subtasks.add(subtask);
-            }
+            subtasks = epic.getSubTasksIds().stream()
+                    .map(subtaskPool::get)
+                    .collect(Collectors.toCollection(ArrayList::new));
         }
         return subtasks;
     }
@@ -223,5 +245,48 @@ public class InMemoryTaskManager implements TaskManager {
                 epic.setStatus(Status.IN_PROGRESS);
             }
         }
+    }
+
+    private void epicTimeControl(Epic epic) {
+        if (epic != null) {
+            List<Integer> subTasksId = epic.getSubTasksIds();
+            if (!subTasksId.isEmpty()) {
+                Subtask subtask = subtaskPool.get(subTasksId.get(0));
+                LocalDateTime startTime = subtask.getStartTime();
+                LocalDateTime endTime = subtask.getEndTime();
+                for (int i = 1; i < subTasksId.size(); i++) {
+                    subtask = subtaskPool.get(subTasksId.get(i));
+                    startTime = (startTime.isBefore(subtask.getStartTime())) ? startTime : subtask.getStartTime();
+                    endTime = (endTime.isAfter(subtask.getEndTime())) ? endTime : subtask.getEndTime();
+                }
+                epic.setStartTime(startTime);
+                epic.setEndTime(endTime);
+                Duration duration = (startTime != null && endTime != null) ? Duration.between(startTime, endTime) : null;
+                epic.setDuration(duration);
+            } else {
+                epic.setStartTime(null);
+                epic.setDuration(null);
+                epic.setEndTime(null);
+            }
+        }
+    }
+
+    @Override
+    public List<Task> getPrioritizedTasks() {
+        return new ArrayList<>(prioritizedTasks);
+    }
+
+    protected void checkAndPutInPrioritizedTasks(Task task) {
+        if (task != null) {
+            if (task.getStartTime() != null && task.getDuration() != null) {
+                prioritizedTasks.add(task);
+            }
+        }
+    }
+
+    private boolean isTaskCrossingWithPrioritized(Task task) {
+        return prioritizedTasks.stream()
+                .anyMatch(prioritizedTask -> prioritizedTask.isTasksPeriodCrossing(task));
+
     }
 }

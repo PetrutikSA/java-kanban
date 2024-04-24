@@ -3,6 +3,9 @@ package tasks;
 import tasks.enums.Status;
 import tasks.enums.TaskTypes;
 
+import java.time.Duration;
+import java.time.LocalDateTime;
+
 public class Subtask extends Task {
     private Integer epicId;
 
@@ -12,11 +15,19 @@ public class Subtask extends Task {
         taskType = TaskTypes.SUBTASK;
     }
 
+    public Subtask(String name, String description, Status status, int epicId, LocalDateTime startTime, Duration duration) {
+        this(name, description, status, epicId);
+        this.startTime = startTime;
+        this.duration = duration;
+    }
+
     public Subtask(Subtask subtask) {
         super(subtask.getName(), subtask.description, subtask.getStatus());
         this.id = subtask.getId();
         this.epicId = subtask.getEpicId();
-        taskType = TaskTypes.SUBTASK;
+        this.taskType = TaskTypes.SUBTASK;
+        this.duration = subtask.duration;
+        this.startTime = subtask.startTime;
     }
 
     public Integer getEpicId() {
