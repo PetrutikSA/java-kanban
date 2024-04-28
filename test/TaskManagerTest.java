@@ -1,3 +1,5 @@
+import managers.exeptions.NotFoundException;
+import managers.exeptions.PeriodCrossingException;
 import managers.tasks.TaskManager;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -11,11 +13,7 @@ import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.junit.jupiter.api.Assertions.assertNull;
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.*;
 
 abstract class TaskManagerTest<T extends TaskManager> {
     protected T taskManager;
@@ -194,9 +192,12 @@ abstract class TaskManagerTest<T extends TaskManager> {
                 LocalDateTime.of(2025, 10, 2, 0, 0), Duration.ofDays(1));
         taskManager.createTask(task);
         task.setId(16);
-        Task taskInManager = taskManager.getTask(16);
-        assertNull(taskInManager, userChangeTaskWithoutTaskManager);
-        taskInManager = taskManager.getTask(10);
+
+        assertThrows(NotFoundException.class, () -> {
+            Task taskInManager = taskManager.getTask(16);
+        }, crossingTaskPeriodError);
+
+        Task taskInManager = taskManager.getTask(10);
         taskInManager.setStatus(Status.DONE);
         assertEquals("Task{id='10, 'name='Name', description='Description', status=NEW'}",
                 taskManager.getTask(10).toString(), userChangeTaskWithoutTaskManager);
@@ -204,10 +205,11 @@ abstract class TaskManagerTest<T extends TaskManager> {
 
     @Test
     void taskIntervalCrossingCheckWhenCreated() {
-        boolean isTaskCreated = taskManager.createTask(new Task("NewTask", "Task to complete",
-                Status.NEW, LocalDateTime.of(2024, 5, 13, 18, 30), Duration.ofDays(2)));
-        assertFalse(isTaskCreated, ifDBWasNotUpdatedShouldReturnFalse);
-        assertNull(taskManager.getTask(10), crossingTaskPeriodError);
+        assertThrows(PeriodCrossingException.class, () -> {
+            taskManager.createTask(new Task("NewTask", "Task to complete", Status.NEW,
+                    LocalDateTime.of(2024, 5, 13, 18, 30), Duration.ofDays(2)));
+        }, crossingTaskPeriodError);
+        assertThrows(NotFoundException.class, () -> taskManager.getTask(10), crossingTaskPeriodError);
     }
 
     @Test
@@ -215,8 +217,7 @@ abstract class TaskManagerTest<T extends TaskManager> {
         Subtask updatedSubtask = new Subtask("Subtask2", "Second Subtask to first epic", Status.NEW,
                 4, LocalDateTime.of(2024, 6, 3, 9, 30), Duration.ofDays(1));
         updatedSubtask.setId(7);
-        boolean isTaskUpdated = taskManager.updateTask(updatedSubtask);
-        assertFalse(isTaskUpdated, ifDBWasNotUpdatedShouldReturnFalse);
+        assertThrows(PeriodCrossingException.class, () -> taskManager.updateTask(updatedSubtask), crossingTaskPeriodError);
         assertEquals(testObjects.subtask2.toString(), taskManager.getTask(7).toString(),
                 crossingTaskPeriodError);
     }
@@ -312,7 +313,7 @@ abstract class TaskManagerTest<T extends TaskManager> {
     @Test
     void addTaskToHistory() {
         taskManager.getTask(1);
-        taskManager.createTask(new Task("Name2", "Description2", Status.NEW, LocalDateTime.of(2024, 4, 30, 0, 15), Duration.ofDays(2)));
+        taskManager.createTask(new Task("Name2", "Description2", Status.NEW, LocalDateTime.of(2025, 4, 30, 0, 15), Duration.ofDays(2)));
         assertEquals(1, taskManager.getHistory().size(), "Задача в историю добавляется при создании, а не просмотре");
         taskManager.getTask(2);
         assertEquals(2, taskManager.getHistory().size(), "Задача не добавлена в историю после просмотра");

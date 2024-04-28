@@ -1,5 +1,8 @@
 package managers.tasks;
 
+import managers.exeptions.ManagerSaveException;
+import managers.exeptions.NotFoundException;
+import managers.exeptions.PeriodCrossingException;
 import tasks.Epic;
 import tasks.Subtask;
 import tasks.Task;
@@ -161,34 +164,26 @@ public class FileBackedTaskManager extends InMemoryTaskManager {
     }
 
     @Override
-    public Task getTask(int id) {
+    public Task getTask(int id) throws NotFoundException {
         Task task = super.getTask(id);
         save();
         return task;
     }
 
     @Override
-    public boolean createTask(Task task) {
-        boolean isCreated = super.createTask(task);
-        if (isCreated) {
-            save();
-            return true;
-        }
-        return false;
+    public void createTask(Task task) throws PeriodCrossingException{
+        super.createTask(task);
+        save();
     }
 
     @Override
-    public boolean updateTask(Task task) {
-        boolean isUpdated = super.updateTask(task);
-        if (isUpdated) {
-            save();
-            return true;
-        }
-        return false;
+    public void updateTask(Task task) throws NotFoundException, PeriodCrossingException {
+        super.updateTask(task);
+        save();
     }
 
     @Override
-    public void removeTask(int id) {
+    public void removeTask(int id) throws NotFoundException {
         super.removeTask(id);
         save();
     }

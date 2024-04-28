@@ -1,6 +1,8 @@
 package managers.tasks;
 
 import managers.Managers;
+import managers.exeptions.NotFoundException;
+import managers.exeptions.PeriodCrossingException;
 import managers.history.HistoryManager;
 import tasks.Epic;
 import tasks.enums.Status;
@@ -74,12 +76,12 @@ public class InMemoryTaskManager implements TaskManager {
     }
 
     @Override
-    public Task getTask(int id) {
+    public Task getTask(int id) throws NotFoundException {
         return getTask(id, true);
     }
 
     //Метод вызывается из remove и update, по ТЗ должна собираться история только просмотренных пользователем задач
-    private Task getTask(int id, boolean shouldBeAddToHistory) {
+    private Task getTask(int id, boolean shouldBeAddToHistory) throws NotFoundException {
         Task task = null;
         if (taskPool.containsKey(id)) {
             task = new Task(taskPool.get(id));
@@ -91,11 +93,15 @@ public class InMemoryTaskManager implements TaskManager {
         if (task != null && shouldBeAddToHistory) {
             historyManager.addTaskToHistory(task);
         }
-        return task;
+        if (task != null) {
+            return task;
+        } else {
+            throw new NotFoundException("Задача не найдена");
+        }
     }
 
     @Override
-    public boolean createTask(Task task) {
+    public void createTask(Task task) throws PeriodCrossingException{
         if (task != null) {
             lastTaskId++;
             task.setId(lastTaskId);
@@ -106,13 +112,15 @@ public class InMemoryTaskManager implements TaskManager {
                     if (!isTaskCrossingWithPrioritized(taskToDB)) {
                         taskPool.put(lastTaskId, taskToDB);
                         checkAndPutInPrioritizedTasks(taskToDB);
-                        return true;
+
+                    } else {
+                        throw new PeriodCrossingException();
                     }
-                    return false;
+                    break;
                 case EPIC:
                     Epic epic = (Epic) task;
                     epicPool.put(lastTaskId, new Epic(epic));
-                    return true;
+                    break;
                 case SUBTASK:
                     Subtask subtask = (Subtask) task;
                     int connectedEpicId = subtask.getEpicId();
@@ -124,22 +132,22 @@ public class InMemoryTaskManager implements TaskManager {
                         connectedEpic.addSubTasks(lastTaskId);
                         epicStatusControl(connectedEpic);
                         epicTimeControl(connectedEpic);
-                        return true;
+                    } else {
+                        throw new PeriodCrossingException();
                     }
-                    return false;
+                    break;
             }
         }
-        return false;
     }
 
     @Override
-    public boolean updateTask(Task task) {
+    public void updateTask(Task task) throws NotFoundException, PeriodCrossingException {
         if (task != null) {
             int taskId = task.getId();
             TaskTypes taskType = task.getTaskType();
-            Task oldTask = getTask(taskId, false);
+            Task oldTask = getTask(taskId, false); //Если null то бросится NotFoundException
             // Проверка что есть то, что обновлять и не позволяет изменить тип задачи, напр. обновить эпик на задачу
-            if (oldTask != null && taskType.equals(oldTask.getTaskType())) {
+            if (taskType.equals(oldTask.getTaskType())) {
                 switch (taskType) {
                     case TASK:
                         Task oldTaskInDB = taskPool.get(taskId);
@@ -148,13 +156,14 @@ public class InMemoryTaskManager implements TaskManager {
                             taskPool.put(taskId, newTaskToDB);
                             prioritizedTasks.remove(oldTaskInDB);
                             checkAndPutInPrioritizedTasks(newTaskToDB);
-                            return true;
+                        } else {
+                            throw new PeriodCrossingException();
                         }
-                        return false;
+                        break;
                     case EPIC:
                         Epic epic = (Epic) task;
                         epicPool.put(taskId, new Epic(epic));
-                        return true;
+                        break;
                     case SUBTASK:
                         Subtask subtask = (Subtask) task;
                         Subtask oldSubtaskFromDB = subtaskPool.get(taskId);
@@ -166,43 +175,41 @@ public class InMemoryTaskManager implements TaskManager {
                             int connectedEpicId = subtask.getEpicId();
                             epicStatusControl(epicPool.get(connectedEpicId));
                             epicTimeControl(epicPool.get(connectedEpicId));
-                            return true;
+                        } else {
+                            throw new PeriodCrossingException();
                         }
-                        return false;
+                        break;
                 }
             }
         }
-        return false;
     }
 
     @Override
-    public void removeTask(int id) {
+    public void removeTask(int id) throws NotFoundException {
         Task task = getTask(id, false);
-        if (task != null) {
-            historyManager.remove(id);
-            TaskTypes taskType = task.getTaskType();
-            switch (taskType) {
-                case TASK:
-                    Task oldTaskFromDB = taskPool.remove(id);
-                    prioritizedTasks.remove(oldTaskFromDB);
-                    break;
-                case EPIC:
-                    // Удаляются эпик из пулла, удаляются все связанные подзадачи
-                    Epic epic = epicPool.remove(id);
-                    epic.getSubTasksIds().stream()
-                            .map(subtaskPool::remove)
-                            .forEach(connectedSubtaskInDB -> prioritizedTasks.remove(connectedSubtaskInDB));
-                    break;
-                case SUBTASK:
-                    // Удаляется подзадача из пулла, из эпика, проверяется статус эпика
-                    Subtask subtask = subtaskPool.remove(id);
-                    prioritizedTasks.remove(subtask);
-                    Epic connectedEpic = epicPool.get(subtask.getEpicId());
-                    connectedEpic.getSubTasksIds().remove((Integer) id);
-                    epicStatusControl(connectedEpic);
-                    epicTimeControl(connectedEpic);
-                    break;
-            }
+        historyManager.remove(id);
+        TaskTypes taskType = task.getTaskType();
+        switch (taskType) {
+            case TASK:
+                Task oldTaskFromDB = taskPool.remove(id);
+                prioritizedTasks.remove(oldTaskFromDB);
+                break;
+            case EPIC:
+                // Удаляются эпик из пулла, удаляются все связанные подзадачи
+                Epic epic = epicPool.remove(id);
+                epic.getSubTasksIds().stream()
+                        .map(subtaskPool::remove)
+                        .forEach(connectedSubtaskInDB -> prioritizedTasks.remove(connectedSubtaskInDB));
+                break;
+            case SUBTASK:
+                // Удаляется подзадача из пулла, из эпика, проверяется статус эпика
+                Subtask subtask = subtaskPool.remove(id);
+                prioritizedTasks.remove(subtask);
+                Epic connectedEpic = epicPool.get(subtask.getEpicId());
+                connectedEpic.getSubTasksIds().remove((Integer) id);
+                epicStatusControl(connectedEpic);
+                epicTimeControl(connectedEpic);
+                break;
         }
     }
 
