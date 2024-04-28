@@ -1,16 +1,14 @@
 package handlers;
 
 import com.sun.net.httpserver.HttpExchange;
-import com.sun.net.httpserver.HttpHandler;
 import managers.tasks.TaskManager;
 
 import java.io.IOException;
 
-public class EpicHandler implements HttpHandler {
-    private final TaskManager taskManager;
+public class EpicHandler extends BaseHttpHandler {
 
     public EpicHandler(TaskManager taskManager) {
-        this.taskManager = taskManager;
+        super(taskManager);
     }
 
     @Override

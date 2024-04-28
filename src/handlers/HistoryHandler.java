@@ -1,16 +1,14 @@
 package handlers;
 
 import com.sun.net.httpserver.HttpExchange;
-import com.sun.net.httpserver.HttpHandler;
 import managers.tasks.TaskManager;
 
 import java.io.IOException;
 
-public class HistoryHandler implements HttpHandler {
-    private final TaskManager taskManager;
+public class HistoryHandler extends BaseHttpHandler {
 
     public HistoryHandler(TaskManager taskManager) {
-        this.taskManager = taskManager;
+        super(taskManager);
     }
 
     @Override

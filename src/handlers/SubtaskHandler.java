@@ -1,16 +1,14 @@
 package handlers;
 
 import com.sun.net.httpserver.HttpExchange;
-import com.sun.net.httpserver.HttpHandler;
 import managers.tasks.TaskManager;
 
 import java.io.IOException;
 
-public class SubtaskHandler implements HttpHandler {
-    private final TaskManager taskManager;
+public class SubtaskHandler extends BaseHttpHandler {
 
     public SubtaskHandler(TaskManager taskManager) {
-        this.taskManager = taskManager;
+        super(taskManager);
     }
 
     @Override

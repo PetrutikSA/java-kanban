@@ -1,16 +1,14 @@
 package handlers;
 
 import com.sun.net.httpserver.HttpExchange;
-import com.sun.net.httpserver.HttpHandler;
 import managers.tasks.TaskManager;
 
 import java.io.IOException;
 
-public class PrioritizedHandler implements HttpHandler {
-    private final TaskManager taskManager;
+public class PrioritizedHandler extends BaseHttpHandler {
 
     public PrioritizedHandler(TaskManager taskManager) {
-        this.taskManager = taskManager;
+        super(taskManager);
     }
 
     @Override
