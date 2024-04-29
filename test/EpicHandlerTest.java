@@ -3,7 +3,7 @@ import tasks.Epic;
 import java.time.Duration;
 import java.util.ArrayList;
 
-public class EpicHandlerTest extends BaseHttpHandlerTest<Epic> {
+public class EpicHandlerTest extends BaseTaskHandlerTest<Epic> {
 
     @Override
     protected void init() {
