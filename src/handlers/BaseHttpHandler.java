@@ -15,6 +15,7 @@ public abstract class BaseHttpHandler implements HttpHandler {
     protected final String postCompleted = "База данных успешно обновлена";
     protected final String deleteCompleted = "Данные успешно удалены";
     protected final String taskNotFoundError = "Задача не найдена";
+    protected final String commandNotFoundError = "Команда не найдена";
 
     protected BaseHttpHandler(TaskManager taskManager) {
         this.taskManager = taskManager;

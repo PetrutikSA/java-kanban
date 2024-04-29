@@ -5,6 +5,7 @@ import com.google.gson.GsonBuilder;
 import com.sun.net.httpserver.HttpExchange;
 import handlers.adapters.DurationAdapter;
 import handlers.adapters.LocalDateTimeAdapter;
+import managers.exeptions.CommandNotFoundException;
 import managers.exeptions.NotFoundException;
 import managers.exeptions.PeriodCrossingException;
 import managers.tasks.TaskManager;
@@ -45,7 +46,7 @@ public class TaskHandler extends BaseHttpHandler {
                     sendResponse(exchange, postCompleted, 201, false);
                     return;
                 case "DELETE":
-                    handleDeleteRequest(exchange, id);
+                    handleDeleteRequest(id);
                     sendResponse(exchange, deleteCompleted, 200, false);
                     return;
                 default:
@@ -57,10 +58,12 @@ public class TaskHandler extends BaseHttpHandler {
             sendResponse(exchange, taskNotFoundError, 404, false);
         } catch (PeriodCrossingException e) {
             sendResponse(exchange, hasInteractionsError, 406, false);
+        } catch (CommandNotFoundException e) {
+            sendResponse(exchange, commandNotFoundError, 400, false);
         }
     }
 
-    private String handleGetRequest(HttpExchange exchange, int id, Gson gson) throws NotFoundException {
+    protected String handleGetRequest(HttpExchange exchange, int id, Gson gson) throws NotFoundException {
         if (id == -1) { //если id не указан возвращаем все задачи
             return gson.toJson(taskList());
         } else { //возвращаем задачу
@@ -89,7 +92,7 @@ public class TaskHandler extends BaseHttpHandler {
         return gson.fromJson(body, Task.class);
     }
 
-    private void handleDeleteRequest(HttpExchange exchange, int id) throws NotFoundException {
+    private void handleDeleteRequest(int id) throws NotFoundException {
         if (id == -1) { //если id не указан удаляем весь пул
             removePool();
         } else { //удаляем задачу
