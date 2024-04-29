@@ -1,10 +1,7 @@
 package handlers;
 
 import com.google.gson.Gson;
-import com.google.gson.GsonBuilder;
 import com.sun.net.httpserver.HttpExchange;
-import handlers.adapters.DurationAdapter;
-import handlers.adapters.LocalDateTimeAdapter;
 import managers.exeptions.CommandNotFoundException;
 import managers.exeptions.NotFoundException;
 import managers.exeptions.PeriodCrossingException;
@@ -14,8 +11,6 @@ import tasks.Task;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
-import java.time.Duration;
-import java.time.LocalDateTime;
 import java.util.List;
 
 public class TaskHandler extends BaseHttpHandler {
