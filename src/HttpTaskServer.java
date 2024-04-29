@@ -31,7 +31,6 @@ public class HttpTaskServer {
     public static void main(String[] args) throws IOException {
         HttpTaskServer httpTaskServer = new HttpTaskServer(Managers.getDefault());
         httpTaskServer.start(8080);
-        System.out.println("Сервер запущен");
     }
 
     public void start(int port) throws IOException {
@@ -46,7 +45,6 @@ public class HttpTaskServer {
 
     public void stop() {
         httpServer.stop(0);
-        System.out.println("Сервер остановлен");
     }
 
     public Gson getGson() {
