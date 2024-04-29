@@ -13,7 +13,7 @@ import java.time.Duration;
 import java.time.LocalDateTime;
 import java.util.List;
 
-public abstract class UtilHandler extends BaseHttpHandler{
+public abstract class UtilHandler extends BaseHttpHandler {
 
     protected UtilHandler(TaskManager taskManager, Gson gson) {
         super(taskManager, gson);

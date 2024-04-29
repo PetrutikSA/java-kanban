@@ -62,7 +62,7 @@ public class TaskHandler extends BaseHttpHandler {
         }
     }
 
-    protected List<? extends Task> taskList () { //выделено для переопределения в наследуемых классах
+    protected List<? extends Task> taskList() { //выделено для переопределения в наследуемых классах
         return taskManager.getTasksList();
     }
 
@@ -79,7 +79,7 @@ public class TaskHandler extends BaseHttpHandler {
         }
     }
 
-    protected Task taskFromRequest (String body, Gson gson) { //выделено для переопределения в наследуемых классах
+    protected Task taskFromRequest(String body, Gson gson) { //выделено для переопределения в наследуемых классах
         return gson.fromJson(body, Task.class);
     }
 

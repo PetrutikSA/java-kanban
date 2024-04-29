@@ -101,7 +101,7 @@ public class InMemoryTaskManager implements TaskManager {
     }
 
     @Override
-    public void createTask(Task task) throws PeriodCrossingException{
+    public void createTask(Task task) throws PeriodCrossingException {
         if (task != null) {
             lastTaskId++;
             task.setId(lastTaskId);
