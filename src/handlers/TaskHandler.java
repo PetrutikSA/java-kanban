@@ -3,6 +3,8 @@ package handlers;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.sun.net.httpserver.HttpExchange;
+import handlers.adapters.DurationAdapter;
+import handlers.adapters.LocalDateTimeAdapter;
 import managers.exeptions.NotFoundException;
 import managers.exeptions.PeriodCrossingException;
 import managers.tasks.TaskManager;
@@ -11,6 +13,9 @@ import tasks.Task;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
+import java.time.Duration;
+import java.time.LocalDateTime;
+import java.util.List;
 
 public class TaskHandler extends BaseHttpHandler {
 
@@ -21,19 +26,22 @@ public class TaskHandler extends BaseHttpHandler {
     @Override
     public void handle(HttpExchange exchange) throws IOException {
         try {
-            String response;
             String method = exchange.getRequestMethod();
             String[] pathParts = exchange.getRequestURI().getPath().split("/");
             //Если запрос ко всем задачам, то id будет установлен -1
             int id = (pathParts.length == 2) ? -1 : Integer.parseInt(pathParts[2]);
+            Gson gson = new GsonBuilder()
+                    .registerTypeAdapter(LocalDateTime.class, new LocalDateTimeAdapter())
+                    .registerTypeAdapter(Duration.class, new DurationAdapter())
+                    .create();
 
             switch (method) {
                 case "GET":
-                    response = handleGetRequest(exchange, id);
+                    String response = handleGetRequest(exchange, id, gson);
                     sendResponse(exchange, response, 200, true);
                     return;
                 case "POST":
-                    handlePostRequest(exchange, id);
+                    handlePostRequest(exchange, id, gson);
                     sendResponse(exchange, postCompleted, 201, false);
                     return;
                 case "DELETE":
@@ -52,21 +60,24 @@ public class TaskHandler extends BaseHttpHandler {
         }
     }
 
-    private String handleGetRequest(HttpExchange exchange, int id) throws NotFoundException {
-        Gson gson = new GsonBuilder().create();
+    private String handleGetRequest(HttpExchange exchange, int id, Gson gson) throws NotFoundException {
         if (id == -1) { //если id не указан возвращаем все задачи
-            return gson.toJson(taskManager.getTasksList());
+            return gson.toJson(taskList());
         } else { //возвращаем задачу
             return gson.toJson(taskManager.getTask(id));
         }
     }
 
-    private void handlePostRequest(HttpExchange exchange, int id)
+    protected List<? extends Task> taskList () { //выделено для переопределения в наследуемых классах
+        return taskManager.getTasksList();
+    }
+
+    private void handlePostRequest(HttpExchange exchange, int id, Gson gson)
             throws IOException, NotFoundException, PeriodCrossingException {
-        Gson gson = new GsonBuilder().create();
+
         InputStream inputStream = exchange.getRequestBody();
         String body = new String(inputStream.readAllBytes(), StandardCharsets.UTF_8);
-        Task task = gson.fromJson(body, Task.class);
+        Task task = taskFromRequest(body, gson);
         if (id == -1) { //если id не указан добавляем задачу
             taskManager.createTask(task);
         } else { //обновляем задачу
@@ -74,11 +85,19 @@ public class TaskHandler extends BaseHttpHandler {
         }
     }
 
+    protected Task taskFromRequest (String body, Gson gson) { //выделено для переопределения в наследуемых классах
+        return gson.fromJson(body, Task.class);
+    }
+
     private void handleDeleteRequest(HttpExchange exchange, int id) throws NotFoundException {
         if (id == -1) { //если id не указан удаляем весь пул
-            taskManager.removeTaskPool();
+            removePool();
         } else { //удаляем задачу
             taskManager.removeTask(id);
         }
+    }
+
+    protected void removePool() {
+        taskManager.removeTaskPool();
     }
 }

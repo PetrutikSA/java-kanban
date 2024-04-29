@@ -1,18 +1,30 @@
 package handlers;
 
-import com.sun.net.httpserver.HttpExchange;
+import com.google.gson.Gson;
 import managers.tasks.TaskManager;
+import tasks.Subtask;
+import tasks.Task;
 
-import java.io.IOException;
+import java.util.List;
 
-public class SubtaskHandler extends BaseHttpHandler {
+public class SubtaskHandler extends TaskHandler {
 
     public SubtaskHandler(TaskManager taskManager) {
         super(taskManager);
     }
 
     @Override
-    public void handle(HttpExchange exchange) throws IOException {
+    protected List<? extends Task> taskList() {
+        return taskManager.getSubtasksList();
+    }
 
+    @Override
+    protected Task taskFromRequest(String body, Gson gson) {
+        return gson.fromJson(body, Subtask.class);
+    }
+
+    @Override
+    protected void removePool() {
+        taskManager.removeSubtaskPool();
     }
 }
