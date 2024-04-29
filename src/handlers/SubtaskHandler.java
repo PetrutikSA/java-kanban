@@ -9,8 +9,8 @@ import java.util.List;
 
 public class SubtaskHandler extends TaskHandler {
 
-    public SubtaskHandler(TaskManager taskManager) {
-        super(taskManager);
+    public SubtaskHandler(TaskManager taskManager, Gson gson) {
+        super(taskManager, gson);
     }
 
     @Override

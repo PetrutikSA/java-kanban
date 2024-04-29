@@ -1,3 +1,5 @@
+package managers;
+
 import managers.tasks.InMemoryTaskManager;
 
 class InMemoryTaskManagerTest extends TaskManagerTest<InMemoryTaskManager>{

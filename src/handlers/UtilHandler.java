@@ -15,8 +15,8 @@ import java.util.List;
 
 public abstract class UtilHandler extends BaseHttpHandler{
 
-    protected UtilHandler(TaskManager taskManager) {
-        super(taskManager);
+    protected UtilHandler(TaskManager taskManager, Gson gson) {
+        super(taskManager, gson);
     }
 
     @Override

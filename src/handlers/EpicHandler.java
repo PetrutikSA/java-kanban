@@ -12,8 +12,8 @@ import java.util.List;
 
 public class EpicHandler extends TaskHandler {
 
-    public EpicHandler(TaskManager taskManager) {
-        super(taskManager);
+    public EpicHandler(TaskManager taskManager, Gson gson) {
+        super(taskManager, gson);
     }
 
     @Override

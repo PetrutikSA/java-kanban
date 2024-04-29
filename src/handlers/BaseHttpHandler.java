@@ -1,5 +1,6 @@
 package handlers;
 
+import com.google.gson.Gson;
 import com.sun.net.httpserver.HttpExchange;
 import com.sun.net.httpserver.HttpHandler;
 import managers.tasks.TaskManager;
@@ -9,6 +10,7 @@ import java.nio.charset.StandardCharsets;
 
 public abstract class BaseHttpHandler implements HttpHandler {
     protected final TaskManager taskManager;
+    protected Gson gson;
     protected final String taskIdSyntaxError = "Номер задачи долже быть указан в виде числа";
     protected final String methodSyntaxError = "Некорректный метод!";
     protected final String hasInteractionsError = "Задача пересекается с существующими";
@@ -17,7 +19,7 @@ public abstract class BaseHttpHandler implements HttpHandler {
     protected final String taskNotFoundError = "Задача не найдена";
     protected final String commandNotFoundError = "Команда не найдена";
 
-    protected BaseHttpHandler(TaskManager taskManager) {
+    protected BaseHttpHandler(TaskManager taskManager, Gson gson) {
         this.taskManager = taskManager;
     }
 

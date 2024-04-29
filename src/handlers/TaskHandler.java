@@ -20,8 +20,8 @@ import java.util.List;
 
 public class TaskHandler extends BaseHttpHandler {
 
-    public TaskHandler(TaskManager taskManager) {
-        super(taskManager);
+    public TaskHandler(TaskManager taskManager, Gson gson) {
+        super(taskManager, gson);
     }
 
     @Override
@@ -31,10 +31,6 @@ public class TaskHandler extends BaseHttpHandler {
             String[] pathParts = exchange.getRequestURI().getPath().split("/");
             //Если запрос ко всем задачам, то id будет установлен -1
             int id = (pathParts.length == 2) ? -1 : Integer.parseInt(pathParts[2]);
-            Gson gson = new GsonBuilder()
-                    .registerTypeAdapter(LocalDateTime.class, new LocalDateTimeAdapter())
-                    .registerTypeAdapter(Duration.class, new DurationAdapter())
-                    .create();
 
             switch (method) {
                 case "GET":

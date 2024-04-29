@@ -1,6 +1,9 @@
+package managers;
+
 import managers.exeptions.NotFoundException;
 import managers.exeptions.PeriodCrossingException;
 import managers.tasks.TaskManager;
+import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import tasks.Epic;
@@ -45,24 +48,16 @@ abstract class TaskManagerTest<T extends TaskManager> {
 
     void addTasks() {
         testObjects = new TestObjects();
-        taskManager.createTask(testObjects.task1);
-        taskManager.createTask(testObjects.task2);
-        taskManager.createTask(testObjects.task3);
-        taskManager.createTask(testObjects.epic1);
-        taskManager.createTask(testObjects.epic2);
-        taskManager.createTask(testObjects.subtask1);
-        taskManager.createTask(testObjects.subtask2);
-        taskManager.createTask(testObjects.subtask3);
-        taskManager.createTask(testObjects.subtask4);
+        testObjects.fillManagerWithTestObjects(taskManager);
     }
 
     @Test
     void getSameTaskByIdAsWasCreated() {
-        assertEquals(testObjects.task2.toString(),
+        Assertions.assertEquals(testObjects.task2.toString(),
                 taskManager.getTask(2).toString(), taskInDBNotEqualToCreated);
-        assertEquals(testObjects.epic2.toString(), taskManager.getTask(5).toString(),
+        Assertions.assertEquals(testObjects.epic2.toString(), taskManager.getTask(5).toString(),
                 taskInDBNotEqualToCreated);
-        assertEquals(testObjects.subtask4.toString(), taskManager.getTask(9).toString(),
+        Assertions.assertEquals(testObjects.subtask4.toString(), taskManager.getTask(9).toString(),
                 taskInDBNotEqualToCreated);
     }
 
@@ -218,7 +213,7 @@ abstract class TaskManagerTest<T extends TaskManager> {
                 4, LocalDateTime.of(2024, 6, 3, 9, 30), Duration.ofDays(1));
         updatedSubtask.setId(7);
         assertThrows(PeriodCrossingException.class, () -> taskManager.updateTask(updatedSubtask), crossingTaskPeriodError);
-        assertEquals(testObjects.subtask2.toString(), taskManager.getTask(7).toString(),
+        Assertions.assertEquals(testObjects.subtask2.toString(), taskManager.getTask(7).toString(),
                 crossingTaskPeriodError);
     }
 
