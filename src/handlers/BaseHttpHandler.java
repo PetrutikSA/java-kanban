@@ -27,12 +27,12 @@ public abstract class BaseHttpHandler implements HttpHandler {
     @Override
     public abstract void handle(HttpExchange exchange) throws IOException;
 
-    protected void sendResponse(HttpExchange h, String text, int responseCode, boolean isTextJson) throws IOException {
+    protected void sendResponse(HttpExchange exchange, String text, int responseCode, boolean isTextJson) throws IOException {
         String contentType = (isTextJson) ? "application/json;charset=utf-8" : "text/html;charset=utf-8";
         byte[] resp = text.getBytes(StandardCharsets.UTF_8);
-        h.getResponseHeaders().add("Content-Type", contentType);
-        h.sendResponseHeaders(responseCode, resp.length);
-        h.getResponseBody().write(resp);
-        h.close();
+        exchange.getResponseHeaders().add("Content-Type", contentType);
+        exchange.sendResponseHeaders(responseCode, resp.length);
+        exchange.getResponseBody().write(resp);
+        exchange.close();
     }
 }

@@ -16,18 +16,18 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.time.Duration;
 import java.time.LocalDateTime;
-import java.time.format.DateTimeFormatter;
 import java.util.Arrays;
 import java.util.List;
 
 import tasks.enums.Status;
 import tasks.enums.TaskTypes;
 
+import static handlers.adapters.LocalDateTimeAdapter.DATE_TIME_FORMATTER;
+
 public class FileBackedTaskManager extends InMemoryTaskManager {
     private final String fileName;
     private final String currentDir;
     private final Path file;
-    public static final DateTimeFormatter FORMATTER = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss.SSS");
 
     public FileBackedTaskManager() { // значения по умолчанию
         fileName = "db.csv";
@@ -90,7 +90,7 @@ public class FileBackedTaskManager extends InMemoryTaskManager {
                     String name = line[3];
                     String description = line[4];
                     Status status = Status.valueOf(line[5]);
-                    LocalDateTime startTime = (line[6].isBlank()) ? null : LocalDateTime.parse(line[6], FORMATTER);
+                    LocalDateTime startTime = (line[6].isBlank()) ? null : LocalDateTime.parse(line[6], DATE_TIME_FORMATTER);
                     Duration duration = (line[7].isBlank()) ? null : Duration.ofMinutes(Long.parseLong(line[7]));
                     if (fileBackedTaskManager.lastTaskId < id) fileBackedTaskManager.lastTaskId = id;
 
@@ -117,7 +117,7 @@ public class FileBackedTaskManager extends InMemoryTaskManager {
                                         .mapToInt(Integer::parseInt)
                                         .forEach(epic::addSubTasks);
                             }
-                            LocalDateTime endTime = (line[9].isBlank()) ? null : LocalDateTime.parse(line[9], FORMATTER);
+                            LocalDateTime endTime = (line[9].isBlank()) ? null : LocalDateTime.parse(line[9], DATE_TIME_FORMATTER);
                             epic.setEndTime(endTime);
                             if (isDataBaseValue) {
                                 fileBackedTaskManager.epicPool.put(id, epic);
