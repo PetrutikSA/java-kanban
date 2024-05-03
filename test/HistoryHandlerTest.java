@@ -19,7 +19,7 @@ public class HistoryHandlerTest extends BaseHttpHandlerTest{
     @Test
     void emptyHistoryGet () throws IOException, InterruptedException {
         HttpResponse<String> response = sendRequest("GET", "");
-        assertEquals(200, response.statusCode());
+        assertEquals(HttpCodes.Complete200.getCode(), response.statusCode());
         List<Task> history = gson.fromJson(response.body(), new TaskListTypeToken().getType());
 
         assertNotNull(history, "История не возвращается");
