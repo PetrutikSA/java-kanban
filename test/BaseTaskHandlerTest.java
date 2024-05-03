@@ -24,7 +24,7 @@ public abstract class BaseTaskHandlerTest <T extends Task> extends BaseHttpHandl
 
     @Test
     void getPool() throws IOException, InterruptedException {
-        HttpResponse<String> response = sendRequest("GET", "");
+        HttpResponse<String> response = sendGetRequest( "");
         assertEquals(HttpCodes.Complete200.getCode(), response.statusCode(), code200);
         List<Task> taskPool = gson.fromJson(response.body(), new TaskListTypeToken().getType());
 
@@ -34,7 +34,7 @@ public abstract class BaseTaskHandlerTest <T extends Task> extends BaseHttpHandl
 
     @Test
     void getById() throws IOException, InterruptedException {
-        HttpResponse<String> response = sendRequest("GET", "/" + objectsInDB.getFirst().getId());
+        HttpResponse<String> response = sendGetRequest("/" + objectsInDB.getFirst().getId());
         assertEquals(HttpCodes.Complete200.getCode(), response.statusCode(), code200);
         Task task = gson.fromJson(response.body(), classOfT);
         assertNotNull(task, poolNotReceived);
@@ -43,18 +43,18 @@ public abstract class BaseTaskHandlerTest <T extends Task> extends BaseHttpHandl
 
     @Test
     void getTaskThatNotExist() throws IOException, InterruptedException {
-        HttpResponse<String> response = sendRequest("GET", "/20");
+        HttpResponse<String> response = sendGetRequest("/20");
         assertEquals(HttpCodes.Error404.getCode(), response.statusCode(), code404);
     }
 
     @Test
     void create() throws IOException, InterruptedException {
         String newTaskJson = gson.toJson(newObject);
-        HttpResponse<String> response = sendRequest("POST", newTaskJson, "");
+        HttpResponse<String> response = sendPostRequest(newTaskJson, "");
         assertEquals(HttpCodes.Complete201.getCode(), response.statusCode(), code201);
         newObject.setId(10);
 
-        response = sendRequest("GET", "/10");
+        response = sendGetRequest("/10");
         assertEquals(HttpCodes.Complete200.getCode(), response.statusCode(), code200);
         T task = gson.fromJson(response.body(), classOfT);
 
@@ -64,10 +64,10 @@ public abstract class BaseTaskHandlerTest <T extends Task> extends BaseHttpHandl
     @Test
     void updateTask () throws IOException, InterruptedException {
         String updatedTaskJson = gson.toJson(updatedObject);
-        HttpResponse<String> response = sendRequest("POST", updatedTaskJson,"/" + updatedObject.getId());
+        HttpResponse<String> response = sendPostRequest(updatedTaskJson,"/" + updatedObject.getId());
         assertEquals(HttpCodes.Complete201.getCode(), response.statusCode(), code201);
 
-        response = sendRequest("GET", "/" + updatedObject.getId());
+        response = sendGetRequest("/" + updatedObject.getId());
         assertEquals(HttpCodes.Complete200.getCode(), response.statusCode(), code200);
         T task = gson.fromJson(response.body(), classOfT);
 
@@ -79,32 +79,32 @@ public abstract class BaseTaskHandlerTest <T extends Task> extends BaseHttpHandl
         notInDBObjectToUpdate.setId(10);
 
         String updatedTaskJson = gson.toJson(notInDBObjectToUpdate);
-        HttpResponse<String> response = sendRequest("POST", updatedTaskJson,"/3");
+        HttpResponse<String> response = sendPostRequest(updatedTaskJson,"/3");
         assertEquals(HttpCodes.Error404.getCode(), response.statusCode(), code404);
 
-        response = sendRequest("GET", "/10");
+        response = sendGetRequest("/10");
         assertEquals(HttpCodes.Error404.getCode(), response.statusCode(), code404);
     }
 
     @Test
     void deleteTask () throws IOException, InterruptedException {
-        HttpResponse<String> response = sendRequest("DELETE","/" + objectsInDB.getFirst().getId());
+        HttpResponse<String> response = sendDeleteRequest("/" + objectsInDB.getFirst().getId());
         assertEquals(HttpCodes.Complete200.getCode(), response.statusCode(), code200);
-        response = sendRequest("GET", "/" + objectsInDB.getFirst().getId());
+        response = sendGetRequest("/" + objectsInDB.getFirst().getId());
         assertEquals(HttpCodes.Error404.getCode(), response.statusCode(), code404);
     }
 
     @Test
     void deleteNotExistedTask () throws IOException, InterruptedException {
-        HttpResponse<String> response = sendRequest("DELETE","/20");
+        HttpResponse<String> response = sendDeleteRequest("/20");
         assertEquals(HttpCodes.Error404.getCode(), response.statusCode(), code404);
     }
 
     @Test
     void deletePool () throws IOException, InterruptedException {
-        HttpResponse<String> response = sendRequest("DELETE","");
+        HttpResponse<String> response = sendDeleteRequest("");
         assertEquals(HttpCodes.Complete200.getCode(), response.statusCode(), code200);
-        response = sendRequest("GET", "");
+        response = sendGetRequest("");
         List<T> taskPool = gson.fromJson(response.body(), new TaskListTypeToken().getType());
         assertEquals(0, taskPool.size(), "Пул задач не очищен");
     }

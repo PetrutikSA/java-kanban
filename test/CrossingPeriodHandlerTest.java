@@ -12,18 +12,18 @@ public abstract class CrossingPeriodHandlerTest<T extends Task> extends BaseTask
     @Test
     void createTaskWithCrossingPeriod () throws IOException, InterruptedException {
         String newTaskJson = gson.toJson(crossingPeriodNewObject);
-        HttpResponse<String> response = sendRequest("POST", newTaskJson,"");
+        HttpResponse<String> response = sendPostRequest(newTaskJson,"");
         assertEquals(HttpCodes.Error406.getCode(), response.statusCode(), code406);
         crossingPeriodNewObject.setId(10);
 
-        response = sendRequest("GET", "/10");
+        response = sendGetRequest("/10");
         assertEquals(HttpCodes.Error404.getCode(), response.statusCode(),code406);
     }
 
     @Test
     void updateTaskWithCrossingPeriod () throws IOException, InterruptedException {
         String updatedTaskJson = gson.toJson(crossingPeriodObjectToUpdate);
-        HttpResponse<String> response = sendRequest("POST", updatedTaskJson,"/" +
+        HttpResponse<String> response = sendPostRequest(updatedTaskJson,"/" +
                 crossingPeriodNewObject.getId());
         assertEquals(HttpCodes.Error406.getCode(), response.statusCode(), code406);
     }

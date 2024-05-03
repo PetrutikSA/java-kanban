@@ -36,33 +36,33 @@ public abstract class BaseHttpHandlerTest {
         taskServer.stop();
     }
 
-    protected HttpResponse<String> sendRequest(String method, String requestString, String additionalPath) throws IOException, InterruptedException {
+    protected HttpResponse<String> sendGetRequest(String additionalPath) throws IOException, InterruptedException {
         HttpClient client = HttpClient.newHttpClient();
         URI url = URI.create(String.format("http://localhost:%d%s%s", port, basePath, additionalPath));
-        HttpRequest.Builder requestBuilder = HttpRequest.newBuilder()
-                .uri(url);
-        switch (method) {
-            case "GET":
-                requestBuilder.GET();
-                break;
-            case "POST":
-                requestBuilder.POST(HttpRequest.BodyPublishers.ofString(requestString));
-                break;
-            case "DELETE":
-                requestBuilder.DELETE();
-                break;
-            default:
-                throw new IOException();
-        }
-        HttpRequest request = requestBuilder.build();
+        HttpRequest request = HttpRequest.newBuilder()
+                .uri(url)
+                .GET()
+                .build();
         return client.send(request, HttpResponse.BodyHandlers.ofString());
     }
 
-    protected HttpResponse<String> sendRequest(String method, String additionalPath) throws IOException, InterruptedException {
-        if (method.equals("POST")) {
-            throw new IOException();
-        } else {
-            return sendRequest(method, "", additionalPath);
-        }
+    protected HttpResponse<String> sendPostRequest(String requestString, String additionalPath) throws IOException, InterruptedException {
+        HttpClient client = HttpClient.newHttpClient();
+        URI url = URI.create(String.format("http://localhost:%d%s%s", port, basePath, additionalPath));
+        HttpRequest request = HttpRequest.newBuilder()
+                .uri(url)
+                .POST(HttpRequest.BodyPublishers.ofString(requestString))
+                .build();
+        return client.send(request, HttpResponse.BodyHandlers.ofString());
+    }
+
+    protected HttpResponse<String> sendDeleteRequest(String additionalPath) throws IOException, InterruptedException {
+        HttpClient client = HttpClient.newHttpClient();
+        URI url = URI.create(String.format("http://localhost:%d%s%s", port, basePath, additionalPath));
+        HttpRequest request = HttpRequest.newBuilder()
+                .uri(url)
+                .DELETE()
+                .build();
+        return client.send(request, HttpResponse.BodyHandlers.ofString());
     }
 }

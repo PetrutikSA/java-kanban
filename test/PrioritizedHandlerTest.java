@@ -16,7 +16,7 @@ public class PrioritizedHandlerTest extends BaseHttpHandlerTest {
 
     @Test
     void prioritizedCorrectOrder() throws IOException, InterruptedException {
-        HttpResponse<String> response = sendRequest("GET", "");
+        HttpResponse<String> response = sendGetRequest("");
         List<Task> prioritized = gson.fromJson(response.body(), new TaskListTypeToken().getType());
 
         assertEquals(7, prioritized.size(), "Некорректный размер списка приоритетных задач");

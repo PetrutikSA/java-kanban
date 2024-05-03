@@ -18,7 +18,7 @@ public class HistoryHandlerTest extends BaseHttpHandlerTest{
 
     @Test
     void emptyHistoryGet () throws IOException, InterruptedException {
-        HttpResponse<String> response = sendRequest("GET", "");
+        HttpResponse<String> response = sendGetRequest("");
         assertEquals(HttpCodes.Complete200.getCode(), response.statusCode());
         List<Task> history = gson.fromJson(response.body(), new TaskListTypeToken().getType());
 
@@ -32,7 +32,7 @@ public class HistoryHandlerTest extends BaseHttpHandlerTest{
         taskManager.getTask(9);
         taskManager.getTask(2);
 
-        HttpResponse<String> response = sendRequest("GET", "");
+        HttpResponse<String> response = sendGetRequest("");
         List<Task> history = gson.fromJson(response.body(), new TaskListTypeToken().getType());
 
         assertEquals(2, history.size(), notCorrectHistorySize);
