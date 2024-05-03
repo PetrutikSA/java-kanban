@@ -20,7 +20,7 @@ public class PrioritizedHandlerTest extends BaseHttpHandlerTest {
         List<Task> prioritized = gson.fromJson(response.body(), new TaskListTypeToken().getType());
 
         assertEquals(7, prioritized.size(), "Некорректный размер списка приоритетных задач");
-        assertEquals(testObjects.subtask1.getId(), prioritized.get(0).getId(), notCorrectPrioritizedOrder);
+        assertEquals(testObjects.subtask1.getId(), prioritized.getFirst().getId(), notCorrectPrioritizedOrder);
         assertEquals(testObjects.task2.getId(), prioritized.get(2).getId(), notCorrectPrioritizedOrder);
         assertEquals(testObjects.subtask4.getId(), prioritized.get(6).getId(), notCorrectPrioritizedOrder);
     }

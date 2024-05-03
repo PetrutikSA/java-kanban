@@ -129,7 +129,7 @@ class FileBackedTaskManagerTest extends TaskManagerTest<FileBackedTaskManager> {
         assertNotNull(history, historyReturnNull);
         assertEquals(3, history.size(), historySizeError);
         assertEquals("Subtask{id='6, 'name='Subtask3', description='First subtask to second epic', "
-                + "status=NEW, epicID='3'}", history.get(0).toString(), historyOrderError);
+                + "status=NEW, epicID='3'}", history.getFirst().toString(), historyOrderError);
         assertEquals("Task{id='1, 'name='Task1', description='First task to complete', status=NEW'}",
                 history.get(1).toString(), historyOrderError);
         assertEquals("Epic{id='3, 'name='Epic2', description='Second epic to complete', status=NEW, "

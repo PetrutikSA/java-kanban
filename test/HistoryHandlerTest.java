@@ -36,7 +36,7 @@ public class HistoryHandlerTest extends BaseHttpHandlerTest{
         List<Task> history = gson.fromJson(response.body(), new TaskListTypeToken().getType());
 
         assertEquals(2, history.size(), notCorrectHistorySize);
-        assertEquals(9, history.get(0).getId(), notCorrectHistoryOrder);
+        assertEquals(9, history.getFirst().getId(), notCorrectHistoryOrder);
         assertEquals(2, history.get(1).getId(), notCorrectHistoryOrder);
     }
 }

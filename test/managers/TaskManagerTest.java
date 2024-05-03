@@ -249,7 +249,7 @@ abstract class TaskManagerTest<T extends TaskManager> {
     @Test
     void correctPrioritizedTaskListFormingWhileCreating() {
         List<Task> prioritizedTasks = taskManager.getPrioritizedTasks();
-        assertEquals(6, prioritizedTasks.get(0).getId(), incorrectPrioritizedTaskOrder);
+        assertEquals(6, prioritizedTasks.getFirst().getId(), incorrectPrioritizedTaskOrder);
         assertEquals(2, prioritizedTasks.get(2).getId(), incorrectPrioritizedTaskOrder);
         assertEquals(9, prioritizedTasks.get(6).getId(), incorrectPrioritizedTaskOrder);
     }
@@ -268,7 +268,7 @@ abstract class TaskManagerTest<T extends TaskManager> {
         taskManager.updateTask(subtask4updated);
 
         List<Task> prioritizedTasks = taskManager.getPrioritizedTasks();
-        assertEquals(2, prioritizedTasks.get(0).getId(), incorrectPrioritizedTaskOrder);
+        assertEquals(2, prioritizedTasks.getFirst().getId(), incorrectPrioritizedTaskOrder);
         assertEquals(3, prioritizedTasks.get(2).getId(), incorrectPrioritizedTaskOrder);
         assertEquals(8, prioritizedTasks.get(5).getId(), incorrectPrioritizedTaskOrder);
     }
@@ -280,7 +280,7 @@ abstract class TaskManagerTest<T extends TaskManager> {
 
         List<Task> prioritizedTasks = taskManager.getPrioritizedTasks();
         assertEquals(1, prioritizedTasks.get(2).getId(), incorrectPrioritizedTaskOrder);
-        assertEquals(6, prioritizedTasks.get(0).getId(), incorrectPrioritizedTaskOrder);
+        assertEquals(6, prioritizedTasks.getFirst().getId(), incorrectPrioritizedTaskOrder);
         assertEquals(8, prioritizedTasks.get(4).getId(), incorrectPrioritizedTaskOrder);
     }
 
@@ -289,7 +289,7 @@ abstract class TaskManagerTest<T extends TaskManager> {
         taskManager.removeEpicPool();
 
         List<Task> prioritizedTasks = taskManager.getPrioritizedTasks();
-        assertEquals(3, prioritizedTasks.get(0).getId(), incorrectPrioritizedTaskOrder);
+        assertEquals(3, prioritizedTasks.getFirst().getId(), incorrectPrioritizedTaskOrder);
         assertEquals(2, prioritizedTasks.get(1).getId(), incorrectPrioritizedTaskOrder);
         assertEquals(1, prioritizedTasks.get(2).getId(), incorrectPrioritizedTaskOrder);
     }
@@ -329,7 +329,7 @@ abstract class TaskManagerTest<T extends TaskManager> {
         List<Task> history = taskManager.getHistory();
         assertEquals(14, history.size(), historySizeError);
         assertEquals("Task{id='1, 'name='Task1', description='First task to complete', status=NEW'}",
-                history.get(0).toString(), historyOrderError);
+                history.getFirst().toString(), historyOrderError);
         assertEquals("Task{id='19, 'name='Name10', description='Description10', status=NEW'}",
                 history.get(5).toString(), historyOrderError);
         assertEquals("Task{id='10, 'name='Name1', description='Description1', status=NEW'}",
@@ -344,7 +344,7 @@ abstract class TaskManagerTest<T extends TaskManager> {
         taskManager.getTask(1);
         List<Task> tasks = taskManager.getHistory();
         assertEquals(1, tasks.size(), historySizeError);
-        assertEquals(updateTask.toString(), tasks.get(0).toString(), "Вторая версия задачи не корректно сохранена");
+        assertEquals(updateTask.toString(), tasks.getFirst().toString(), "Вторая версия задачи не корректно сохранена");
     }
 
     @Test

@@ -34,11 +34,11 @@ public abstract class BaseTaskHandlerTest <T extends Task> extends BaseHttpHandl
 
     @Test
     void getById() throws IOException, InterruptedException {
-        HttpResponse<String> response = sendRequest("GET", "/" + objectsInDB.get(0).getId());
+        HttpResponse<String> response = sendRequest("GET", "/" + objectsInDB.getFirst().getId());
         assertEquals(200, response.statusCode(), code200);
         Task task = gson.fromJson(response.body(), classOfT);
         assertNotNull(task, poolNotReceived);
-        assertEquals(objectsInDB.get(0).toString(), task.toString(), "Возвращается некорректная задача");
+        assertEquals(objectsInDB.getFirst().toString(), task.toString(), "Возвращается некорректная задача");
     }
 
     @Test
@@ -88,9 +88,9 @@ public abstract class BaseTaskHandlerTest <T extends Task> extends BaseHttpHandl
 
     @Test
     void deleteTask () throws IOException, InterruptedException {
-        HttpResponse<String> response = sendRequest("DELETE","/" + objectsInDB.get(0).getId());
+        HttpResponse<String> response = sendRequest("DELETE","/" + objectsInDB.getFirst().getId());
         assertEquals(200, response.statusCode(), code200);
-        response = sendRequest("GET", "/" + objectsInDB.get(0).getId());
+        response = sendRequest("GET", "/" + objectsInDB.getFirst().getId());
         assertEquals(404, response.statusCode(), code404);
     }
 
