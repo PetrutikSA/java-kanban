@@ -6,7 +6,7 @@ import tasks.enums.TaskTypes;
 import java.time.Duration;
 import java.time.LocalDateTime;
 
-import static managers.tasks.FileBackedTaskManager.FORMATTER;
+import static handlers.adapters.LocalDateTimeAdapter.DATE_TIME_FORMATTER;
 
 public class Task {
     protected int id;
@@ -87,7 +87,7 @@ public class Task {
     }
 
     public String saveToString() {
-        String startTimeToString = (startTime == null) ? " " : startTime.format(FORMATTER);
+        String startTimeToString = (startTime == null) ? " " : startTime.format(DATE_TIME_FORMATTER);
         String durationToString = (duration == null) ? " " : String.valueOf(duration.toMinutes());
         return String.format("%s,%d,%s,%s,%s,%s,%s", taskType, id, name, description, status,
                 startTimeToString, durationToString);

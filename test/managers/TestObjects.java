@@ -1,3 +1,6 @@
+package managers;
+
+import managers.tasks.TaskManager;
 import tasks.Epic;
 import tasks.Subtask;
 import tasks.Task;
@@ -23,4 +26,16 @@ public class TestObjects {
             4, LocalDateTime.of(2024, 6, 1, 9, 30), Duration.ofDays(4));
     public Subtask subtask4 = new Subtask("Subtask4", "First Subtask to second epic", Status.NEW,
             5, LocalDateTime.of(2024, 7, 3, 15, 15), Duration.ofDays(1));
+
+    public void fillManagerWithTestObjects (TaskManager taskManager) {
+        taskManager.createTask(task1);
+        taskManager.createTask(task2);
+        taskManager.createTask(task3);
+        taskManager.createTask(epic1);
+        taskManager.createTask(epic2);
+        taskManager.createTask(subtask1);
+        taskManager.createTask(subtask2);
+        taskManager.createTask(subtask3);
+        taskManager.createTask(subtask4);
+    }
 }

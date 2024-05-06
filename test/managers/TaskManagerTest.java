@@ -1,4 +1,9 @@
+package managers;
+
+import managers.exeptions.NotFoundException;
+import managers.exeptions.PeriodCrossingException;
 import managers.tasks.TaskManager;
+import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import tasks.Epic;
@@ -11,11 +16,7 @@ import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.junit.jupiter.api.Assertions.assertNull;
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.*;
 
 abstract class TaskManagerTest<T extends TaskManager> {
     protected T taskManager;
@@ -47,24 +48,16 @@ abstract class TaskManagerTest<T extends TaskManager> {
 
     void addTasks() {
         testObjects = new TestObjects();
-        taskManager.createTask(testObjects.task1);
-        taskManager.createTask(testObjects.task2);
-        taskManager.createTask(testObjects.task3);
-        taskManager.createTask(testObjects.epic1);
-        taskManager.createTask(testObjects.epic2);
-        taskManager.createTask(testObjects.subtask1);
-        taskManager.createTask(testObjects.subtask2);
-        taskManager.createTask(testObjects.subtask3);
-        taskManager.createTask(testObjects.subtask4);
+        testObjects.fillManagerWithTestObjects(taskManager);
     }
 
     @Test
     void getSameTaskByIdAsWasCreated() {
-        assertEquals(testObjects.task2.toString(),
+        Assertions.assertEquals(testObjects.task2.toString(),
                 taskManager.getTask(2).toString(), taskInDBNotEqualToCreated);
-        assertEquals(testObjects.epic2.toString(), taskManager.getTask(5).toString(),
+        Assertions.assertEquals(testObjects.epic2.toString(), taskManager.getTask(5).toString(),
                 taskInDBNotEqualToCreated);
-        assertEquals(testObjects.subtask4.toString(), taskManager.getTask(9).toString(),
+        Assertions.assertEquals(testObjects.subtask4.toString(), taskManager.getTask(9).toString(),
                 taskInDBNotEqualToCreated);
     }
 
@@ -194,9 +187,12 @@ abstract class TaskManagerTest<T extends TaskManager> {
                 LocalDateTime.of(2025, 10, 2, 0, 0), Duration.ofDays(1));
         taskManager.createTask(task);
         task.setId(16);
-        Task taskInManager = taskManager.getTask(16);
-        assertNull(taskInManager, userChangeTaskWithoutTaskManager);
-        taskInManager = taskManager.getTask(10);
+
+        assertThrows(NotFoundException.class, () -> {
+            Task taskInManager = taskManager.getTask(16);
+        }, crossingTaskPeriodError);
+
+        Task taskInManager = taskManager.getTask(10);
         taskInManager.setStatus(Status.DONE);
         assertEquals("Task{id='10, 'name='Name', description='Description', status=NEW'}",
                 taskManager.getTask(10).toString(), userChangeTaskWithoutTaskManager);
@@ -204,10 +200,11 @@ abstract class TaskManagerTest<T extends TaskManager> {
 
     @Test
     void taskIntervalCrossingCheckWhenCreated() {
-        boolean isTaskCreated = taskManager.createTask(new Task("NewTask", "Task to complete",
-                Status.NEW, LocalDateTime.of(2024, 5, 13, 18, 30), Duration.ofDays(2)));
-        assertFalse(isTaskCreated, ifDBWasNotUpdatedShouldReturnFalse);
-        assertNull(taskManager.getTask(10), crossingTaskPeriodError);
+        assertThrows(PeriodCrossingException.class, () -> {
+            taskManager.createTask(new Task("NewTask", "Task to complete", Status.NEW,
+                    LocalDateTime.of(2024, 5, 13, 18, 30), Duration.ofDays(2)));
+        }, crossingTaskPeriodError);
+        assertThrows(NotFoundException.class, () -> taskManager.getTask(10), crossingTaskPeriodError);
     }
 
     @Test
@@ -215,9 +212,8 @@ abstract class TaskManagerTest<T extends TaskManager> {
         Subtask updatedSubtask = new Subtask("Subtask2", "Second Subtask to first epic", Status.NEW,
                 4, LocalDateTime.of(2024, 6, 3, 9, 30), Duration.ofDays(1));
         updatedSubtask.setId(7);
-        boolean isTaskUpdated = taskManager.updateTask(updatedSubtask);
-        assertFalse(isTaskUpdated, ifDBWasNotUpdatedShouldReturnFalse);
-        assertEquals(testObjects.subtask2.toString(), taskManager.getTask(7).toString(),
+        assertThrows(PeriodCrossingException.class, () -> taskManager.updateTask(updatedSubtask), crossingTaskPeriodError);
+        Assertions.assertEquals(testObjects.subtask2.toString(), taskManager.getTask(7).toString(),
                 crossingTaskPeriodError);
     }
 
@@ -253,7 +249,7 @@ abstract class TaskManagerTest<T extends TaskManager> {
     @Test
     void correctPrioritizedTaskListFormingWhileCreating() {
         List<Task> prioritizedTasks = taskManager.getPrioritizedTasks();
-        assertEquals(6, prioritizedTasks.get(0).getId(), incorrectPrioritizedTaskOrder);
+        assertEquals(6, prioritizedTasks.getFirst().getId(), incorrectPrioritizedTaskOrder);
         assertEquals(2, prioritizedTasks.get(2).getId(), incorrectPrioritizedTaskOrder);
         assertEquals(9, prioritizedTasks.get(6).getId(), incorrectPrioritizedTaskOrder);
     }
@@ -272,7 +268,7 @@ abstract class TaskManagerTest<T extends TaskManager> {
         taskManager.updateTask(subtask4updated);
 
         List<Task> prioritizedTasks = taskManager.getPrioritizedTasks();
-        assertEquals(2, prioritizedTasks.get(0).getId(), incorrectPrioritizedTaskOrder);
+        assertEquals(2, prioritizedTasks.getFirst().getId(), incorrectPrioritizedTaskOrder);
         assertEquals(3, prioritizedTasks.get(2).getId(), incorrectPrioritizedTaskOrder);
         assertEquals(8, prioritizedTasks.get(5).getId(), incorrectPrioritizedTaskOrder);
     }
@@ -284,7 +280,7 @@ abstract class TaskManagerTest<T extends TaskManager> {
 
         List<Task> prioritizedTasks = taskManager.getPrioritizedTasks();
         assertEquals(1, prioritizedTasks.get(2).getId(), incorrectPrioritizedTaskOrder);
-        assertEquals(6, prioritizedTasks.get(0).getId(), incorrectPrioritizedTaskOrder);
+        assertEquals(6, prioritizedTasks.getFirst().getId(), incorrectPrioritizedTaskOrder);
         assertEquals(8, prioritizedTasks.get(4).getId(), incorrectPrioritizedTaskOrder);
     }
 
@@ -293,7 +289,7 @@ abstract class TaskManagerTest<T extends TaskManager> {
         taskManager.removeEpicPool();
 
         List<Task> prioritizedTasks = taskManager.getPrioritizedTasks();
-        assertEquals(3, prioritizedTasks.get(0).getId(), incorrectPrioritizedTaskOrder);
+        assertEquals(3, prioritizedTasks.getFirst().getId(), incorrectPrioritizedTaskOrder);
         assertEquals(2, prioritizedTasks.get(1).getId(), incorrectPrioritizedTaskOrder);
         assertEquals(1, prioritizedTasks.get(2).getId(), incorrectPrioritizedTaskOrder);
     }
@@ -312,7 +308,7 @@ abstract class TaskManagerTest<T extends TaskManager> {
     @Test
     void addTaskToHistory() {
         taskManager.getTask(1);
-        taskManager.createTask(new Task("Name2", "Description2", Status.NEW, LocalDateTime.of(2024, 4, 30, 0, 15), Duration.ofDays(2)));
+        taskManager.createTask(new Task("Name2", "Description2", Status.NEW, LocalDateTime.of(2025, 4, 30, 0, 15), Duration.ofDays(2)));
         assertEquals(1, taskManager.getHistory().size(), "Задача в историю добавляется при создании, а не просмотре");
         taskManager.getTask(2);
         assertEquals(2, taskManager.getHistory().size(), "Задача не добавлена в историю после просмотра");
@@ -333,7 +329,7 @@ abstract class TaskManagerTest<T extends TaskManager> {
         List<Task> history = taskManager.getHistory();
         assertEquals(14, history.size(), historySizeError);
         assertEquals("Task{id='1, 'name='Task1', description='First task to complete', status=NEW'}",
-                history.get(0).toString(), historyOrderError);
+                history.getFirst().toString(), historyOrderError);
         assertEquals("Task{id='19, 'name='Name10', description='Description10', status=NEW'}",
                 history.get(5).toString(), historyOrderError);
         assertEquals("Task{id='10, 'name='Name1', description='Description1', status=NEW'}",
@@ -348,7 +344,7 @@ abstract class TaskManagerTest<T extends TaskManager> {
         taskManager.getTask(1);
         List<Task> tasks = taskManager.getHistory();
         assertEquals(1, tasks.size(), historySizeError);
-        assertEquals(updateTask.toString(), tasks.get(0).toString(), "Вторая версия задачи не корректно сохранена");
+        assertEquals(updateTask.toString(), tasks.getFirst().toString(), "Вторая версия задачи не корректно сохранена");
     }
 
     @Test

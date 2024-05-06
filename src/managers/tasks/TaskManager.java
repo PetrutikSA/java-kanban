@@ -21,9 +21,9 @@ public interface TaskManager {
 
     Task getTask(int id);
 
-    boolean createTask(Task task);
+    void createTask(Task task);
 
-    boolean updateTask(Task task);
+    void updateTask(Task task);
 
     void removeTask(int id);
 
